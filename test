@@ -1,21 +1,2 @@
-Étudiant 1 : Développe l’application principale sur la carte Raspberry Pi.
-Acquisition et sauvegarde des données des capteurs (température, humidité, masse de la ruche, capteurs IR).
-Capture et sauvegarde d’images.
-Tests unitaires et d'intégration.
-Livrables : code fonctionnel, documentation (manuel d’installation et d’utilisation).
-
-
-Étudiant 2 : Réalise l’IHM externe pour le contrôle proche de la ruche.
-Affiche les paramètres de la ruche (caméra, autonomie, mise en veille).
-Implémente un système de notification programmable.
-Livrables : interface utilisateur fonctionnelle, manuels, rapports de tests.
-
-Étudiant 3 : Met en place le serveur et le site web pour visualiser les données collectées.
-Développement des classes pour afficher les données (température, humidité, poids, images de la caméra).
-Analyse des images avec IA externe.
-Livrables : site fonctionnel, documentation technique.
-
-Étudiant 4 : Implémente la communication réseau.
-Développe la transmission des données via Lorawan.
-Met en place un Broker MQTT sécurisé.
-Livrables : réseau opérationnel, documents de recette.
+jsp mais y a du code 
+if (zefzf
