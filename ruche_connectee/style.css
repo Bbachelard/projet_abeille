@@ -1,0 +1,126 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #121212; 
+    color: white; 
+    text-align: center;
+}
+
+/* En-tête */
+header {
+    background-color: #f1c40f; 
+    color: #1e1e1e; 
+    padding: 20px;
+    font-size: 24px;
+    text-transform: uppercase;
+}
+
+/* Navigation */
+nav {
+    background-color: #f1c40f;
+    padding: 15px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+nav ul li {
+    display: inline;
+}
+
+nav ul li a {
+    color: #1e1e1e; 
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 18px;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background 0.3s, transform 0.2s;
+    display: block;
+}
+
+nav ul li a:hover {
+    background-color: #444;
+    transform: scale(1.1);
+}
+
+/* Contenu principal */
+main {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+    background: #1e1e1e;
+    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+/* Tableau */
+table {
+    width: 100%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: #222;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 15px;
+    border-bottom: 1px solid #444;
+    text-align: center;
+}
+
+th {
+    background-color: #f1c40f; /* Jaune miel */
+    color: black;
+}
+
+tr:hover {
+    background-color: #333;
+}
+
+/* Galerie */
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    padding: 20px;
+}
+
+.image {
+    flex: 1 1 calc(30% - 15px);
+    text-align: center;
+    background: #222;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+}
+
+.image img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+/* Pied de page */
+footer {
+    background-color: #1e1e1e;
+    padding: 10px;
+    color: #f1c40f;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+}
