@@ -16,13 +16,12 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
 private slots:
-    void Administrateur();
-    void Utilisateur();
-
 
 private:
     Ui::MainWindow *ui;
+    void displayData();
+    void startAcquisition();
+    void exportData();
 };
 #endif // MAINWINDOW_H
