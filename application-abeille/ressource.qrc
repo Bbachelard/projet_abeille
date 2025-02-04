@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/img">
+        <file>bouton_test.jpg</file>
+        <file>Arriere_plan_fenetre_1.png</file>
+    </qresource>
+</RCC>
