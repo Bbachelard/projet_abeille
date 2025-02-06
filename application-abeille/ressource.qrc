@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/img">
+        <file>arriere_plan2rasp.png</file>
+        <file>arriere_plan3rasp.png</file>
+        <file>arriere_plan1rasp.png</file>
+    </qresource>
+</RCC>
