@@ -20,7 +20,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     admin.creerCompte("nom","moi");
-
 }
 
 
@@ -32,8 +31,6 @@ MainWindow::~MainWindow()
 void MainWindow::mAdministrateur()
 {
     ui->livre->setCurrentWidget(ui->p1);
-
-
 }
 
 void MainWindow::Auth()
@@ -44,8 +41,8 @@ void MainWindow::Auth()
     }
     else{
         qDebug("pas juste");
+     //   ui->autherror->set.text("")
     }
-
 }
 
 
@@ -64,7 +61,6 @@ void MainWindow::retour()
     widgets[4] = ui->p4;
     widgets[5] = ui->p5;
 
-
     for(int i=1;i<=5;i++)
     {
         if(ui->livre->currentWidget()==widgets[i])
@@ -75,10 +71,8 @@ void MainWindow::retour()
                 a=0;
             }
             ui->livre->setCurrentWidget(widgets[a]);
-
         }
     }
-
 }
 
     /*
