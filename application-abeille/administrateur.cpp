@@ -30,3 +30,5 @@ bool Administrateur::authentification(QString a,QString b)
         return false;
     }
 }
+
+

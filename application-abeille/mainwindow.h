@@ -28,9 +28,6 @@ private slots:
 private:
     Ui::MainWindow *ui;
     Administrateur admin;
-    void displayData();
-    void startAcquisition();
-    void exportData();
 
 };
 #endif // MAINWINDOW_H
