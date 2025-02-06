@@ -28,6 +28,12 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::EXIT()
+{
+    QApplication::quit();
+}
+
+
 void MainWindow::mAdministrateur()
 {
     ui->livre->setCurrentWidget(ui->p1);

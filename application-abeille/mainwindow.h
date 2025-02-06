@@ -24,9 +24,13 @@ private slots:
     void Utilisateur();
     void retour();
     void Auth();
+    void EXIT();
 private:
     Ui::MainWindow *ui;
     Administrateur admin;
+    void displayData();
+    void startAcquisition();
+    void exportData();
 
 };
 #endif // MAINWINDOW_H
