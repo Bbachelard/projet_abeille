@@ -1,4 +1,6 @@
 QT       += core gui
+QT += quick virtualkeyboard
+
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

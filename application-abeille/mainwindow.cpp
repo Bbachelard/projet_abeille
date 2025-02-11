@@ -3,6 +3,7 @@
 #include "utilisateur.h"
 #include "ruche.h"
 #include "administrateur.h"
+#include <QDebug>
 
 #include <iostream>
 #include <QVBoxLayout>
@@ -14,15 +15,16 @@
 #include "QString"
 
 
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    admin.creerCompte("nom","moi");
+    admin.creerCompte("moi", "moi");
+
+
 }
-
-
 MainWindow::~MainWindow()
 {
     delete ui;

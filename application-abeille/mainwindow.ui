@@ -62,9 +62,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">
-background-image: url(:/img/bouton_test.jpg);
-</string>
+       <string notr="true"/>
       </property>
       <property name="text">
        <string>Administrateur</string>
@@ -80,7 +78,7 @@ background-image: url(:/img/bouton_test.jpg);
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">background-image: url(:/img/bouton_test.jpg);</string>
+       <string notr="true"/>
       </property>
       <property name="text">
        <string>Utilisateur</string>
@@ -106,7 +104,7 @@ background-image: url(:/img/bouton_test.jpg);
        <rect>
         <x>120</x>
         <y>230</y>
-        <width>81</width>
+        <width>101</width>
         <height>31</height>
        </rect>
       </property>
@@ -176,8 +174,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
      <widget class="QLineEdit" name="idt_2">
       <property name="geometry">
        <rect>
-        <x>200</x>
-        <y>170</y>
+        <x>220</x>
+        <y>230</y>
         <width>301</width>
         <height>31</height>
        </rect>
@@ -187,8 +185,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
       <property name="geometry">
        <rect>
         <x>200</x>
-        <y>230</y>
-        <width>301</width>
+        <y>170</y>
+        <width>281</width>
         <height>31</height>
        </rect>
       </property>

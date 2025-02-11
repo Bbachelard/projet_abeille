@@ -5,6 +5,9 @@
 #include <QMainWindow>
 #include "QGridLayout"
 
+#include <QFocusEvent>
+#include <QProcess>
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -28,6 +31,5 @@ private slots:
 private:
     Ui::MainWindow *ui;
     Administrateur admin;
-
 };
 #endif // MAINWINDOW_H
