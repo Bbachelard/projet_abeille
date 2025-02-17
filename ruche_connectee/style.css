@@ -1,126 +1,163 @@
+/* ======================== */
+/* 🌟 Styles Généraux 🌟 */
+/* ======================== */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Poppins', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #121212; 
-    color: white; 
-    text-align: center;
+    background-color: #f4f4f4;
+    color: #333;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    background-image: url('honeycomb-pattern.png'); /* Ajouter une texture alvéolée */
+    background-size: cover;
 }
 
-/* En-tête */
-header {
-    background-color: #f1c40f; 
-    color: #1e1e1e; 
-    padding: 20px;
-    font-size: 24px;
-    text-transform: uppercase;
-}
-
-/* Navigation */
+/* ========================= */
+/* 🌟 Barre de navigation 🌟 */
+/* ========================= */
 nav {
-    background-color: #f1c40f;
-    padding: 15px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    position: sticky;
-    top: 0;
+    background-color: #AA780A;
+    padding: 15px 0;
+    text-align: center;
+    position: fixed;
     width: 100%;
+    top: 0;
+    left: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     z-index: 1000;
 }
 
 nav ul {
     list-style: none;
-    padding: 0;
     margin: 0;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
+    padding: 0;
 }
 
 nav ul li {
-    display: inline;
+    display: inline-block;
+    margin: 0 20px;
 }
 
 nav ul li a {
-    color: #1e1e1e; 
+    color: white;
     text-decoration: none;
     font-weight: bold;
-    font-size: 18px;
-    padding: 10px 15px;
-    border-radius: 5px;
-    transition: background 0.3s, transform 0.2s;
-    display: block;
+    font-size: 16px;
+    padding: 8px 12px;
+    transition: color 0.3s ease;
 }
 
 nav ul li a:hover {
-    background-color: #444;
-    transform: scale(1.1);
+    color: #FFD700;
 }
 
-/* Contenu principal */
+/* ====================== */
+/* 🌟 Contenu principal 🌟 */
+/* ====================== */
 main {
-    max-width: 900px;
-    margin: auto;
+    width: 80%;
+    margin: 100px auto 20px auto;
+    text-align: center;
     padding: 20px;
-    background: #1e1e1e;
-    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
 }
 
-/* Tableau */
+/* ============================ */
+/* 🌟 Tableau des Dernières mesures 🌟 */
+/* ============================ */
 table {
     width: 100%;
-    margin: 20px auto;
     border-collapse: collapse;
-    background: #222;
+    margin-top: 20px;
+    background: white;
     border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     overflow: hidden;
 }
 
 th, td {
-    padding: 15px;
-    border-bottom: 1px solid #444;
+    padding: 12px;
+    border: 1px solid #aa780a;
     text-align: center;
 }
 
 th {
-    background-color: #f1c40f; /* Jaune miel */
-    color: black;
+    background-color: #AA780A;
+    color: white;
+    font-weight: bold;
 }
 
-tr:hover {
-    background-color: #333;
+td {
+    background-color: #fff;
+    color: #333;
 }
 
-/* Galerie */
-.gallery {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-    padding: 20px;
+tr:hover td {
+    background-color: rgba(170, 120, 10, 0.2);
 }
 
-.image {
-    flex: 1 1 calc(30% - 15px);
-    text-align: center;
+/* ========================= */
+/* 🌟 Mode Sombre 🌙 */
+/* ========================= */
+.dark-mode {
+    background-color: #111;
+    color: white;
+}
+
+.dark-mode table {
     background: #222;
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 2px solid #D6921E;
 }
 
-.image img {
-    width: 100%;
-    height: auto;
-    border-radius: 5px;
+.dark-mode th {
+    background-color: #D6921E;
 }
 
-/* Pied de page */
-footer {
-    background-color: #1e1e1e;
-    padding: 10px;
-    color: #f1c40f;
-    text-align: center;
-    margin-top: 20px;
-    font-size: 14px;
+.dark-mode td {
+    background-color: #333;
+    color: #FFD700;
 }
+
+.dark-mode tr:hover td {
+    background-color: rgba(214, 146, 30, 0.4);
+}
+
+.dark-mode nav {
+    background-color: #222;
+}
+
+.dark-mode nav ul li a {
+    color: #f0c674;
+}
+
+.dark-mode .hexagon {
+    background-color: rgba(214, 146, 30, 0.8);
+}
+
+/* ========================= */
+/* 🌟 HEXAGONES DÉCORATIFS 🌟 */
+/* ========================= */
+.hexagon {
+    position: absolute;
+    width: 80px;
+    height: 92px;
+    background-color: rgba(170, 120, 10, 0.8);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    animation: float 4s infinite alternate ease-in-out;
+    opacity: 0.9;
+}
+
+@keyframes float {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-10px); }
+}
+
+.hexagon.top-left { top: 50px; left: 50px; }
+.hexagon.top-right { top: 50px; right: 50px; }
+.hexagon.bottom-left { bottom: 50px; left: 50px; }
+.hexagon.bottom-right { bottom: 50px; right: 50px; }
+
+/* Hexagones supplémentaires */
+.hexagon.extra1 { top: 30%; left: 15%; transform: scale(1.2); }
+.hexagon.extra2 { top: 60%; right: 10%; transform: scale(0.9); }
+.hexagon.extra3 { bottom: 20%; left: 40%; transform: scale(1.1); }

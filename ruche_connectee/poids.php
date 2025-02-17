@@ -10,7 +10,11 @@ include 'connexion.php';
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+    <div class="hexagon top-left"></div>
+    <div class="hexagon top-right"></div>
+    <div class="hexagon bottom-left"></div>
+    <div class="hexagon bottom-right"></div>
+    
     <?php include 'menu.php'; ?>
 
     <main>
@@ -33,6 +37,6 @@ include 'connexion.php';
             <?php endwhile; ?>
         </table>
     </main>
-
+    <script src="/ruche_connectee/theme.js"></script>
 </body>
 </html>

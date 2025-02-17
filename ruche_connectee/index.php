@@ -10,10 +10,13 @@ include 'connexion.php';
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<?php
 
-?>
-
+    <!-- 🌟 Hexagones décoratifs -->
+    <div class="hexagon top-left"></div>
+    <div class="hexagon top-right"></div>
+    <div class="hexagon bottom-left"></div>
+    <div class="hexagon bottom-right"></div>
+    
 
     <?php include 'menu.php'; ?>
 
@@ -28,8 +31,9 @@ include 'connexion.php';
             <?php
             $query = "SELECT capteurs.type, donnees.valeur, donnees.date_mesure 
                       FROM donnees 
-                      JOIN capteurs ON donnees.id_capteur = capteurs.id_capteur 
+                      INNER JOIN capteurs ON donnees.id_capteur = capteurs.id_capteur 
                       ORDER BY donnees.date_mesure DESC LIMIT 5";
+
             $result = $conn->query($query);
 
             while ($row = $result->fetch_assoc()):
@@ -42,6 +46,8 @@ include 'connexion.php';
             <?php endwhile; ?>
         </table>
     </main>
+
+    <script src="/ruche_connectee/theme.js"></script>
 
 </body>
 </html>
