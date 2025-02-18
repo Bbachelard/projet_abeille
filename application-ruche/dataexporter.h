@@ -1,16 +1,22 @@
 #ifndef DATAEXPORTER_H
 #define DATAEXPORTER_H
-
+#include <QObject>
+#include "data.h"
+#include <QDateTime>
 #include<QString>
-class dataExporter
+
+class dataExporter : public QObject
 {
+    Q_OBJECT
 private:
     QString connection;
 public:
-    dataExporter();
+    explicit dataExporter(QObject *parent = nullptr);
     void connectDB();
-    void saveData(QVector<float>data);
-    QVector<float> retrieveData();
+    Q_INVOKABLE void saveData(int id_capteur, float valeur, QDateTime date_mesure);
+    void exportToSD(const Data &dataa);
+    void exportToLoRaWAN(const Data &dataa);
+
 };
 
 

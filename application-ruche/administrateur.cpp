@@ -2,7 +2,7 @@
 
 Administrateur::Administrateur(QObject *parent) : Utilisateur(parent)
 {
-    id = "root";
+    id = "Root";
     pw = "root";
 }
 void Administrateur::creerCompte(QString a,QString b)

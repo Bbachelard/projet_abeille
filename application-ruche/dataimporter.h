@@ -1,13 +1,13 @@
 #ifndef DATAIMPORTER_H
 #define DATAIMPORTER_H
 #include "QString"
+#include "data.h"
 
 class Dataimporter
 {
 public:
     Dataimporter();
-    void exportToSD(QVector<float>data);
-    void exportToLoRaWAN(QVector<float>data);
+    Data retrieveData();
 };
 
 #endif // DATAIMPORTER_H

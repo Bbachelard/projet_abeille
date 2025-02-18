@@ -24,23 +24,33 @@ Item {
     Column {
         spacing: 20
         anchors.centerIn: parent
-        Button {
-            text: "Administrateur"
+        Button{
+            text:"Administrateur"
             width: 200
             height: 50
             onClicked: {
                 livre.direction=1;
-                livre.push(Page2)
+                livre.push("Page2.qml");
             }
         }
-        Button {
-            text: "Utilisateur"
+        Button{
+            text:"Utilisateur"
             width: 200
             height: 50
             onClicked: {
                 livre.direction=-1;
-                livre.push(Page1)
+                livre.push("Page3.qml")
             }
         }
-    }
-}
+
+        Button{
+            text:"ruche"
+            width: 200
+            height: 50
+            onClicked: {
+                livre.push("Page4A.qml")
+            }
+        }
+}}
+
+

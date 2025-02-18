@@ -1,11 +1,14 @@
 QT += quick virtualkeyboard
-
+QT   += core sql
+QT += mqtt
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+        MqttHandler.cpp \
         administrateur.cpp \
+        configurateurruche.cpp \
         dataexporter.cpp \
         dataimporter.cpp \
         main.cpp \
@@ -26,7 +29,10 @@ target.path = /home/pi
 INSTALLS += target
 
 HEADERS += \
+    MqttHandler.h \
     administrateur.h \
+    configurateurruche.h \
+    data.h \
     dataexporter.h \
     dataimporter.h \
     ruche.h \
