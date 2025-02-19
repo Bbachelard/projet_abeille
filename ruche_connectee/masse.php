@@ -9,11 +9,20 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <div class="hexagon top-left"></div>
+    <div class="hexagon top-right"></div>
+    <div class="hexagon bottom-left"></div>
+    <div class="hexagon bottom-right"></div>
+
     <?php include 'menu.php'; ?>
 
     <main>
+        <div class="button-container">
+            <a href="temperature.php" class="graph-button">Température</a>
+            <a href="humidite.php" class="graph-button">Humidité</a>
+        </div>
         <h2>Graphique de la Masse</h2>
-        <canvas id="masseChart"></canvas>
+        <canvas id="masseChart"></canvas> 
     </main>
 
     <script>
