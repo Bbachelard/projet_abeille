@@ -161,3 +161,44 @@ tr:hover td {
 .hexagon.extra1 { top: 30%; left: 15%; transform: scale(1.2); }
 .hexagon.extra2 { top: 60%; right: 10%; transform: scale(0.9); }
 .hexagon.extra3 { bottom: 20%; left: 40%; transform: scale(1.1); }
+
+.button-container {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 15px 30px;
+    margin: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background-color: #AA780A;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #D6921E;
+}
+
+.button-container {
+    text-align: center;
+    margin-top: 20px;
+}
+.graph-button {
+    display: inline-block;
+    padding: 15px 25px;
+    margin: 10px;
+    font-size: 18px;
+    color: white;
+    background-color: #AA780A;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+.graph-button:hover {
+    background-color: #D6921E;
+}
