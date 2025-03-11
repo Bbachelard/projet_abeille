@@ -8,6 +8,7 @@ Item {
 
     property var ruche
     property var rucheData: rucheData || []
+    property var capteursData: []
 
     Image {
         source: "qrc:/fond5.png"
@@ -37,37 +38,61 @@ Item {
             text: "Ruche ID: " + ruche.getId()
             font.pixelSize: 24
         }
+        Button {
+            text: "Charger les données"
+            onClicked: {
+                capteursData = dManager.getRucheData();
+            }
+        }
 
         ListView {
             width: parent.width
-            height: 320
-            model: rucheData  // Utilisation directe de rucheData transmis par Page4A.qml
+            height: parent.height - 100
+            anchors.top: parent.top
+            anchors.topMargin: 80
+            model: capteursData
             delegate: Column {
+                width: parent.width
                 spacing: 5
+                padding: 10
 
-                Text {
-                    text: "Température: " + modelData.temperature + " °C"
-                    font.pixelSize: 18
-                }
-                Text {
-                    text: "Humidité: " + modelData.humidity + " %"
-                    font.pixelSize: 18
-                }
-                Text {
-                    text: "Masse: " + modelData.mass + " kg"
-                    font.pixelSize: 18
-                }
-                Text {
-                    text: "Pression: " + modelData.pression + " hPa"
-                    font.pixelSize: 18
-                }
-                Text {
-                    text: "date: " + modelData.dateTime
-                    font.pixelSize: 18
-                }
-                Text {
-                    text: "-------------------"
-                    font.pixelSize: 18
+                Rectangle {
+                    width: parent.width - 20
+                    height: 120
+                    color: "#eeeeee"
+                    radius: 10
+                    border.color: "#aaaaaa"
+
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: 5
+
+                        Text {
+                            text: "🆔 Capteur ID: " + modelData.id_capteur
+                            font.pixelSize: 18
+                            font.bold: true
+                        }
+                        Text {
+                            text: "📌 Type: " + modelData.type
+                            font.pixelSize: 16
+                        }
+                        Text {
+                            text: "📍 Localisation: " + modelData.localisation
+                            font.pixelSize: 16
+                        }
+                        Text {
+                            text: "📝 Description: " + modelData.description
+                            font.pixelSize: 14
+                        }
+                        Text {
+                            text: "📊 Dernière valeur: " + modelData.valeur
+                            font.pixelSize: 16
+                        }
+                        Text {
+                            text: "📅 Date mesure: " + modelData.date_mesure
+                            font.pixelSize: 14
+                        }
+                    }
                 }
             }
         }

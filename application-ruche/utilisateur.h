@@ -13,14 +13,7 @@ private:
 public:
     explicit Utilisateur(QObject *parent = nullptr);
     virtual ~Utilisateur();
-    void choix_ruche();
-    float get_humi();
-    float get_temp();
-    float get_press();
-    float get_poid();
-    void alerte_limite();
-    void afficher();
-    QString get_img();
+
 };
 
 #endif // UTILISATEUR_H

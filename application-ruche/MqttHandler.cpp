@@ -1,7 +1,7 @@
 #include "MqttHandler.h"
 
-MqttHandler::MqttHandler(configurateurRuche *configurateur,QObject *parent)
-    : QObject(parent), configurateur(configurateur)
+MqttHandler::MqttHandler(configurateurRuche *configurateur,dataManager *dManager,QObject *parent)
+    : QObject(parent), configurateur(configurateur),dbManager(dManager)
 {
     mqttClient = new QMqttClient(this);
     mqttClient->setHostname("eu1.cloud.thethings.network");
@@ -17,6 +17,8 @@ void MqttHandler::connectToBroker()
 {
     mqttClient->connectToHost();
 }
+
+
 
 void MqttHandler::onConnected()
 {
@@ -36,9 +38,6 @@ void MqttHandler::onMessageReceived(const QByteArray &message, const QMqttTopicN
         QJsonArray rxMetadata = jsonObj["uplink_message"].toObject()["rx_metadata"].toArray();
 
         if (!rxMetadata.isEmpty()) {
-            QJsonObject location = rxMetadata.first().toObject()["location"].toObject();
-            double latitude = location["latitude"].toDouble();
-            double longitude = location["longitude"].toDouble();
             float temperature=18;
             float humidity=20;
             float mass=10;
@@ -46,28 +45,36 @@ void MqttHandler::onMessageReceived(const QByteArray &message, const QMqttTopicN
             QString imgPath="qrc:/img.png";
 
             qDebug() << "Date de réception :" << receivedAt;
-            qDebug() << "Latitude :" << latitude;
-            qDebug() << "Longitude :" << longitude;
-
-            QList<Ruche*> ruchesList = configurateur->getRuchesList();
-            if (ruchesList.isEmpty()) {
-                qDebug() << "Aucune ruche trouvée, création d'une nouvelle ruche.";
-                configurateur->addRuche(Ruche::createTestRuche());
-            } else {
-                qDebug() << "Ruche déjà existante, mise à jour uniquement.";
-            }
-            receivedAt = receivedAt.left(23) + "Z";  // On garde jusqu'aux millisecondes
+            receivedAt = receivedAt.left(23) + "Z";
             QDateTime receivedDateTime = QDateTime::fromString(receivedAt, Qt::ISODateWithMs);
 
-            ruchesList = configurateur->getRuchesList();
+
+            QList<Ruche*> ruchesList = configurateur->getRuchesList();
+            Ruche* cibleRuche = nullptr;
             for (Ruche* ruche : ruchesList) {
-                if (ruche->getId() == 0) {
-                    qDebug() << "Mise à jour de la ruche avec l'ID 1";
-                    ruche->setData(temperature, humidity, mass, pression, imgPath, receivedDateTime);
+                if (ruche->getMqttAdresse() == topic.name()) {
+                    cibleRuche = ruche;
                     break;
-                }else
-                    qDebug()<<"pas trouver!!!!!";
+                }
             }
+            if (!cibleRuche) {
+                qDebug() << "⚠️ Aucune ruche ne correspond à ce topic, création d'une nouvelle.";
+                cibleRuche = Ruche::createTestRuche();
+                cibleRuche->setMqttAdresse(topic.name());
+                configurateur->addRuche(cibleRuche);
+            } else {
+                qDebug() << "✅ Ruche trouvée avec MQTT Adresse : " << cibleRuche->getMqttAdresse();
+            }
+
+
+            cibleRuche->setData(temperature, humidity, mass, pression, imgPath, receivedDateTime);
+
+            // Enregistrement des données en base avec l'ID de la ruche
+            int rucheId = cibleRuche->getId();
+            dbManager->saveData(rucheId * 10 + 1, temperature, receivedDateTime);
+            dbManager->saveData(rucheId * 10 + 2, humidity, receivedDateTime);
+            dbManager->saveData(rucheId * 10 + 3, mass, receivedDateTime);
+            dbManager->saveData(rucheId * 10 + 4, pression, receivedDateTime);
 
         } else {
             qDebug() << "Pas de métadonnées de localisation.";

@@ -2,7 +2,7 @@
 
 int Ruche::nextId = 0;
 
-Ruche::Ruche(QObject *parent) : QObject(parent), id(nextId++)
+Ruche::Ruche(QObject *parent,const QString &mqttAdresse) : QObject(parent), id(nextId++),mqttAdresse(mqttAdresse)
 {
 }
 
@@ -16,14 +16,14 @@ void Ruche::setData(float m_temp, float m_hum, float m_mass, float m_pression, Q
         newData.imgPath = m_imgPath;
         newData.dateTime = m_dateTime;
         dataList.append(newData);
-
+/*
         qDebug() << "Nouvelle donnée ajoutée - Temp:" << newData.temperature
                  << "Humidité:" << newData.humidity
                  << "Masse:" << newData.mass
                  << "Pression:" << newData.pression
                  << "DateTime:" << newData.dateTime.toString(Qt::ISODate);
 
-        qDebug() << "Nombre total d'entrées dans dataList :" << dataList.size();
+        qDebug() << "Nombre total d'entrées dans dataList :" << dataList.size();*/
         emit dataListChanged();
 }
 
@@ -52,9 +52,18 @@ Ruche *Ruche::createTestRuche()
 {
     Ruche *testRuche = new Ruche();
     QDateTime testDateTime = QDateTime::currentDateTime();
-
     // Données fictives pour la ruche
     testRuche->setData(25.0, 50.0, 10.5, 1013.0, "qrc:/images/testImage.png", testDateTime);
 
     return testRuche;
+}
+
+QString Ruche::getMqttAdresse() const {
+    return mqttAdresse;
+}
+void Ruche::setMqttAdresse(const QString &adresse) {
+    if (mqttAdresse != adresse) {
+        mqttAdresse = adresse;
+        emit mqttAdresseChanged();
+    }
 }

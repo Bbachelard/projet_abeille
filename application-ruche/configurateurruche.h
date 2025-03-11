@@ -17,6 +17,7 @@ public:
 
     Q_INVOKABLE void addRuche(Ruche* ruche);
     QList<Ruche*> getRuchesList() const;
+    Q_INVOKABLE Ruche* createRuche(const QString &mqttAdresse);
 
 private:
     QList<Ruche*> ruchesList;

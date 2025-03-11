@@ -29,26 +29,13 @@ Item {
     Column {
            spacing: 20
            anchors.centerIn: parent
-           Button {
-               text: "Sauvegarder BDD"
-               width: 250
-               height: 50
-               onClicked: {
-                   console.log("Sauvegarde en cours...");
-                   dExport.saveData(1, 23.5, "2025-01-24 18:24:26");
-                   console.log("Sauvegarde effectuée.");
-               }
-           }
-
             Button {
                 text: "Ajouter une ruche"
                 width: 250
                 height: 50
-                onClicked: {
-                    var nouvelleRuche = RucheManager.createTestRuche();
-                    ruchesList.push(nouvelleRuche);
-               }
+                onClicked: popup.open()
            }
+
 
            // Liste des ruches
             Rectangle {
@@ -88,5 +75,56 @@ Item {
                 }
                }
            }
-    }
+    Popup {
+            id: popup
+            width: 300
+            height: 200
+            modal: true
+            focus: true
+            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+            z: 100
 
+            Rectangle {
+                width: parent.width
+                height: parent.height
+                color: "lightgray"
+                border.color: "gray"
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 10
+
+                    Text {
+                        text: "Contenu de la ruche"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        font.pixelSize: 18
+                        font.bold: true
+                    }
+                    TextField {
+                        id: mqttAdresse
+                        width: 300
+                        placeholderText: "mqttAdresse"
+                        font.pixelSize: 18
+                        focus: true
+                        onPressed: {
+                            Qt.inputMethod.show()
+                        }
+                    }
+                    Button {
+                        text: "Ajouter une ruche"
+                        width: 250
+                        height: 50
+                        onClicked: {
+                            var nouvelleRuche = RucheManager.createRuche(mqttAdresse);
+                       }
+                    }
+
+                    // Bouton pour fermer la popup
+                    Button {
+                        text: "Fermer"
+                        onClicked: popup.close()
+                    }
+                }
+        }
+    }
+}

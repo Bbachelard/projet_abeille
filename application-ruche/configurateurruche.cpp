@@ -25,6 +25,13 @@ void configurateurRuche::addRuche(Ruche* ruche)
         emit ruchesChanged();
     }
 }
+Ruche* configurateurRuche::createRuche(const QString &mqttAdresse) {
+    Ruche* nouvelleRuche = new Ruche(this, mqttAdresse);
+    addRuche(nouvelleRuche);
+    emit ruchesChanged();
+    return nouvelleRuche;
+}
+
 
 void configurateurRuche::appendRuche(QQmlListProperty<Ruche> *list, Ruche *ruche)
 {

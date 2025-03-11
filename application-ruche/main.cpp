@@ -3,7 +3,7 @@
 #include <QQmlContext>
 
 #include "administrateur.h"
-#include "dataexporter.h"
+#include "datamanager.h"
 #include "MqttHandler.h"
 #include "configurateurruche.h"
 #include "data.h"
@@ -20,17 +20,18 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
 
     Administrateur admin;
-    dataExporter dExport;
+    dataManager dManager;
     configurateurRuche configurateur;
-    MqttHandler mqttHandler(&configurateur);
+    MqttHandler mqttHandler(&configurateur,&dManager);
 
     qmlRegisterType<Ruche>("com.example.ruche", 1, 0, "Ruche");
     qmlRegisterSingletonInstance("com.example.ruche", 1, 0, "RucheManager", &configurateur);
 
 
     engine.rootContext()->setContextProperty("admin", &admin);
-    engine.rootContext()->setContextProperty("dExport", &dExport);
+    engine.rootContext()->setContextProperty("dManager", &dManager);
     mqttHandler.connectToBroker();
+    dManager.connectDB();
 
 
 

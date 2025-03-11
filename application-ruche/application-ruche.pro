@@ -1,5 +1,5 @@
 QT += quick virtualkeyboard
-QT   += core sql
+QT += sql
 QT += mqtt
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -9,8 +9,7 @@ SOURCES += \
         MqttHandler.cpp \
         administrateur.cpp \
         configurateurruche.cpp \
-        dataexporter.cpp \
-        dataimporter.cpp \
+        datamanager.cpp \
         main.cpp \
         ruche.cpp \
         utilisateur.cpp
@@ -25,18 +24,20 @@ QML_IMPORT_PATH =
 QML_DESIGNER_IMPORT_PATH =
 
 # Default rules for deployment.
-target.path = /home/pi
-INSTALLS += target
 
 HEADERS += \
     MqttHandler.h \
     administrateur.h \
     configurateurruche.h \
     data.h \
-    dataexporter.h \
-    dataimporter.h \
+    datamanager.h \
     ruche.h \
     utilisateur.h
 
 DISTFILES += \
     ../../../../../media/benjy/BT-7274/cours/projets/projet ruche/design IHM/arressai.png
+
+
+target.path = /home/pi/ruche_connectee
+INSTALLS += target
+
