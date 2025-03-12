@@ -80,10 +80,18 @@ Item {
                             errorMessage.visible = true;
                             hideError.start();
                         }else{
-                            if (admin.authentification(usernameField.text, passwordField.text)) {
+                            if (dManager.authentification(usernameField.text, passwordField.text)) {
                             console.log("Connexion réussie !");
-                            livre.direction = 2;
-                            livre.push("Page4A.qml");
+                            if (dManager.is_super(usernameField.text))
+                            {
+                                livre.direction = 2;
+                                livre.push("Page4A.qml");
+                            }
+                            else{
+                                livre.direction = 2;
+                                livre.push("Page1.qml");
+                            }
+
                         } else {
                             console.log("Identifiants incorrects !");
                             errorMessage.text = "Identifiants incorrects !";

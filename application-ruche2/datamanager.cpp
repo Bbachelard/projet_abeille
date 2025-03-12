@@ -82,3 +82,75 @@ QVariantList dataManager::getRucheData(int rucheId)
 
     return capteursList;
 }
+
+void dataManager::save_admin(QString id_compte,QString identifiant,QString password, int grade)
+{
+    QSqlQuery addmin;
+    addmin.prepare("INSERT INTO compte (id_compte, identifiant, password, grade) VALUES (:id_compte, :identifiant, :password, :grade)");
+    addmin.bindValue(":id_compte", id_compte);
+    addmin.bindValue(":identifiant", identifiant);
+    addmin.bindValue(":password", password);
+    addmin.bindValue(":grade", grade);
+}
+
+bool dataManager::authentification(QString a, QString b)
+
+{
+    QSqlQuery id;
+    id.prepare("SELECT identifiant FROM compte WHERE identifiant = :valeur");
+    id.bindValue(":valeur", a);
+    QSqlQuery pw;
+    pw.prepare("SELECT password FROM compte WHERE password = :valeurr");
+    pw.bindValue(":valeurr", b);
+
+
+    if (!id.exec())
+    {
+        qWarning() << "Erreur SQL:" << id.lastError().text();
+        return false;
+    }
+
+    if (id.next())
+    {
+        int count = id.value(0).toInt();
+        if (count > 0)
+        {
+            if (!pw.exec())
+            {
+                qWarning() << "Erreur SQL:" << pw.lastError().text();
+                return false;
+            }
+
+            if (pw.next())
+            {
+                int count = pw.value(0).toInt();
+
+                return (count > 0); // Retourne vrai si la valeur existe
+            }
+        }
+    }
+    return false;
+}
+
+bool dataManager::is_superadmin(QString a)
+{
+    QSqlQuery grade;
+    grade.prepare("SELECT grade FROM compte WHERE identifiant = :valeur");
+    grade.bindValue(":valeur", a);
+
+    if (!grade.exec())
+    {
+        qWarning() << "Erreur SQL:" << grade.lastError().text();
+        return false;
+    }
+
+    if (grade.next())
+    {
+        int count = grade.value(0).toInt();
+        if(count==2)
+        {
+            return true;}
+    }
+    return false;
+}
+

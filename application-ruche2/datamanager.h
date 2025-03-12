@@ -25,6 +25,14 @@ public:
 
     void exportToSD(const Data &dataa);
 
+    // save_admin,  save_user,    delete_admin,   delete_user,    get_admin,    get_user,
+        Q_INVOKABLE void save_admin(QString id_compte,QString identifiant,QString password, int grade);
+        Q_INVOKABLE bool authentification(QString a, QString b);
+        Q_INVOKABLE bool is_superadmin(QString a);
+        //Q_INVOKABLE void delete_admin();
+        //Q_INVOKABLE void get_admin();
+    //void save_user();void delete_user();void get_user();
+
 };
 
 

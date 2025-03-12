@@ -2,7 +2,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
-#include "administrateur.h"
+
 #include "datamanager.h"
 #include "MqttHandler.h"
 #include "configurateurruche.h"
@@ -19,7 +19,6 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    Administrateur admin;
     dataManager dManager;
     configurateurRuche configurateur;
     MqttHandler mqttHandler(&configurateur,&dManager);
@@ -28,7 +27,6 @@ int main(int argc, char *argv[])
     qmlRegisterSingletonInstance("com.example.ruche", 1, 0, "RucheManager", &configurateur);
 
 
-    engine.rootContext()->setContextProperty("admin", &admin);
     engine.rootContext()->setContextProperty("dManager", &dManager);
     mqttHandler.connectToBroker();
     dManager.connectDB();
