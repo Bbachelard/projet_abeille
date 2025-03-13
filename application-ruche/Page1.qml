@@ -52,6 +52,14 @@ Item {
                 livre.push("Page4A.qml")
             }
         }
+        Button{
+            text:"super dmin"
+            width: 200
+            height: 50
+            onClicked: {
+                livre.push("Page2A.qml")
+            }
+        }
 }}
 
 

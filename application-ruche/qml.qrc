@@ -8,5 +8,6 @@
         <file>Page4U.qml</file>
         <file>Page5.qml</file>
         <file>Page5_Popup.qml</file>
+        <file>Page2A.qml</file>
     </qresource>
 </RCC>

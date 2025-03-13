@@ -86,7 +86,7 @@ Item {
                                 if (dManager.is_superadmin(usernameField.text))
                                 {
                                     livre.direction = 2;
-                                    livre.push("Page4A.qml");
+                                    livre.push("Page2A.qml");
                                 }
                                 else{
                                     livre.direction = 2;
