@@ -73,6 +73,7 @@ Item {
                     text: "Se connecter"
                     width: 200
                     height: 40
+
                     onClicked:{
                         if (usernameField.text === "" || passwordField.text === "") {
                             console.log("Veuillez remplir tous les champs.");
@@ -80,10 +81,18 @@ Item {
                             errorMessage.visible = true;
                             hideError.start();
                         }else{
-                            if (admin.authentification(usernameField.text, passwordField.text)) {
+                            if (dManager.authentification(usernameField.text, passwordField.text)) {
                             console.log("Connexion réussie !");
-                            livre.direction = 2;
-                            livre.push("Page4A.qml");
+                            if (dManager.is_superadmin(usernameField.text))
+                            {
+                                livre.direction = 2;
+                                livre.push("Page4A.qml");
+                            }
+                            else{
+                                livre.direction = 1;
+                                livre.push("Page1.qml");
+                            }
+
                         } else {
                             console.log("Identifiants incorrects !");
                             errorMessage.text = "Identifiants incorrects !";

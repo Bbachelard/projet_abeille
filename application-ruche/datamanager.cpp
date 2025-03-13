@@ -40,7 +40,7 @@ void dataManager::saveData(int id_capteur, float valeur, QDateTime date_mesure)
     }
 }
 
-QVariantList dataManager::getRucheData(int rucheId)
+QVariantList dataManager::getRucheData()
 {
     QVariantList capteursList;
 
@@ -78,7 +78,123 @@ QVariantList dataManager::getRucheData(int rucheId)
         capteursList.append(capteur);
 
     }
-    qDebug() << "fait";
 
     return capteursList;
+}
+
+QVariantList dataManager::getCapteurGraphData(int id_capteur)
+{
+    QVariantList graphData;
+
+    if (!db.isOpen()) {
+        qDebug() << "⚠️ Base de données déconnectée !";
+        connectDB();
+    }
+
+    QSqlQuery query;
+    query.prepare("SELECT valeur FROM donnees WHERE id_capteur = :id ORDER BY date_mesure ASC");
+    query.bindValue(":id", id_capteur);
+
+    if (!query.exec()) {
+        qDebug() << "❌ Erreur SQL :" << query.lastError().text();
+        return graphData;
+    }
+
+    while (query.next()) {
+        QVariantMap point;
+        point["valeur"] = query.value("valeur").toFloat();
+        graphData.append(point);
+    }
+
+    return graphData;
+}
+
+QVariantList dataManager::getAllRucheData()
+{
+    QVariantList allDataList;
+
+    if (!db.isOpen()) {
+        qDebug() << "⚠️ La base de données n'est pas connectée, tentative de reconnexion...";
+        connectDB();
+    }
+
+    QString queryString = R"(
+        SELECT c.id_capteur, c.type, c.localisation, c.description, d.valeur, d.date_mesure
+        FROM capteurs c
+        INNER JOIN donnees d ON c.id_capteur = d.id_capteur
+        ORDER BY d.date_mesure DESC, c.type ASC;
+    )";
+
+    QSqlQuery query;
+
+    if (!query.exec(queryString)) {
+        qDebug() << "❌ Erreur lors de la récupération des données :" << query.lastError().text();
+        return allDataList;
+    }
+
+    while (query.next()) {
+        QVariantMap capteur;
+        capteur["id_capteur"] = query.value("id_capteur").toInt();
+        capteur["type"] = query.value("type").toString();
+        capteur["localisation"] = query.value("localisation").toString();
+        capteur["description"] = query.value("description").toString();
+        capteur["valeur"] = query.value("valeur").toFloat();
+        capteur["date_mesure"] = query.value("date_mesure").toString();
+
+        allDataList.append(capteur);
+    }
+
+    return allDataList;
+}
+
+
+
+
+bool dataManager::authentification(QString a, QString b)
+
+{
+    QSqlQuery query;
+    query.prepare("SELECT identifiant, password FROM compte WHERE identifiant = :id AND password = :pw");
+    query.bindValue(":id", a);
+    query.bindValue(":pw", b);
+
+    if (!query.exec())
+    {
+        qWarning() << "Erreur SQL:" << query.lastError().text();
+        return false;
+    }
+
+    if (query.next())
+    {
+        QString idValue = query.value(0).toString();
+        QString pwValue = query.value(1).toString();
+
+        qDebug() << "ID:" << idValue;
+        qDebug() << "Password:" << pwValue;
+
+        return true;
+    }
+    return false;
+}
+
+bool dataManager::is_superadmin(QString a)
+{
+    QSqlQuery grade;
+    grade.prepare("SELECT grade FROM compte WHERE identifiant = :valeur");
+    grade.bindValue(":valeur", a);
+
+    if (!grade.exec())
+    {
+        qWarning() << "Erreur SQL:" << grade.lastError().text();
+        return false;
+    }
+
+    if (grade.next())
+    {
+        int count = grade.value(0).toInt();
+        if(count==3)
+        {
+            return true;}
+    }
+    return false;
 }

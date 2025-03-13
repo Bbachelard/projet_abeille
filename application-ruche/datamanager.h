@@ -21,7 +21,12 @@ public:
     explicit dataManager(QObject *parent = nullptr);
     void connectDB();
     Q_INVOKABLE void saveData(int id_capteur, float valeur, QDateTime date_mesure);
-    Q_INVOKABLE QVariantList getRucheData(int rucheId);
+    Q_INVOKABLE QVariantList getRucheData();
+    Q_INVOKABLE QVariantList getCapteurGraphData(int id_capteur);
+    Q_INVOKABLE QVariantList getAllRucheData();
+
+    Q_INVOKABLE bool authentification(QString a, QString b);
+    Q_INVOKABLE bool is_superadmin(QString a);
 
     void exportToSD(const Data &dataa);
 
