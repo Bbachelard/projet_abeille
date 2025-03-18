@@ -1,13 +1,18 @@
 <?php
 include 'connexion.php';
 
+
 $capteur = $_GET['capteur'] ?? '';
+$periode = $_GET['periode'] ?? 'all';
 
 $capteur_id_map = [
     'temperature' => 1,
     'humidite' => 2,
-    'masse' => 4
+    'pression' => 3,
+    'masse' => 4, 
+    'camera' => 5
 ];
+
 
 if (!isset($capteur_id_map[$capteur])) {
     echo json_encode(["error" => "Capteur non trouvé"]);
@@ -16,18 +21,20 @@ if (!isset($capteur_id_map[$capteur])) {
 
 $id_capteur = $capteur_id_map[$capteur];
 
-$query = "SELECT valeur, date_mesure FROM donnees WHERE id_capteur = ? ORDER BY date_mesure ASC";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("i", $id_capteur);
-$stmt->execute();
-$result = $stmt->get_result();
+$query = "SELECT valeur, date_mesure FROM donnees WHERE id_capteur = :id_capteur";
 
-$data = ["dates" => [], "valeurs" => []];
-
-while ($row = $result->fetch_assoc()) {
-    $data["dates"][] = $row["date_mesure"];
-    $data["valeurs"][] = $row["valeur"];
+if ($periode === "week") {
+    $query .= " AND date_mesure >= datetime('now', '-7 days')";
+} elseif ($periode === "month") {
+    $query .= " AND date_mesure >= datetime('now', '-30 days')";
 }
 
-echo json_encode($data);
-?>
+$query .= " ORDER BY date_mesure ASC";
+
+$stmt = $conn->prepare($query);
+$stmt->bindParam(":id_capteur", $id_capteur, PDO::PARAM_INT);
+$stmt->execute();
+$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+echo json_encode(["dates" => array_column($result, "date_mesure"), "valeurs" => array_column($result, "valeur")]);
+

@@ -1,4 +1,5 @@
 <?php
+include 'verif_session.php';
 include 'connexion.php';
 ?>
 
@@ -27,6 +28,10 @@ include 'connexion.php';
         </div>
     </main>
     <script src="/ruche_connectee/theme.js"></script>
+    <script src="notifications_animation.js"></script>
+    <script src="script.js" defer></script>
+
+
 </body>
 </html>
 

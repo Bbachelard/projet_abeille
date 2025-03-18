@@ -7,10 +7,11 @@ include 'connexion.php';
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Capteurs - Ruche Connectée</title>
+    <title>Données - Ruche Connectée</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <div class="hexagon top-left"></div>
     <div class="hexagon top-right"></div>
     <div class="hexagon bottom-left"></div>
@@ -19,33 +20,35 @@ include 'connexion.php';
     <?php include 'menu.php'; ?>
 
     <main>
-        <h2>Liste des Capteurs</h2>
+        <h2>Données des capteurs</h2>
         <table>
             <tr>
-                <th>ID</th>
-                <th>Type</th>
-                <th>Localisation</th>
-                <th>Description</th>
+                <th>Type de Capteur</th>
+                <th>Valeur</th>
+                <th>Date</th>
             </tr>
             <?php
-            $query = "SELECT * FROM capteurs";
+            $query = "SELECT capteurs.type, donnees.valeur, donnees.date_mesure 
+                      FROM donnees 
+                      JOIN capteurs ON donnees.id_capteur = capteurs.id_capteur 
+                      ORDER BY donnees.date_mesure DESC 
+                      LIMIT 10";
             $stmt = $conn->prepare($query);
             $stmt->execute();
 
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)): 
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)):
             ?>
                 <tr>
-                    <td><?= htmlspecialchars($row['id_capteur']) ?></td>
                     <td><?= htmlspecialchars($row['type']) ?></td>
-                    <td><?= htmlspecialchars($row['localisation']) ?></td>
-                    <td><?= htmlspecialchars($row['description']) ?></td>
+                    <td><?= htmlspecialchars($row['valeur']) ?></td>
+                    <td><?= htmlspecialchars($row['date_mesure']) ?></td>
                 </tr>
             <?php endwhile; ?>
         </table>
     </main>
+
     <script src="/ruche_connectee/theme.js"></script>
     <script src="notifications_animation.js"></script>
     <script src="script.js" defer></script>
-
 </body>
 </html>

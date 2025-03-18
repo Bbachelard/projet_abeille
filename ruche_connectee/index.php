@@ -1,4 +1,5 @@
 <?php
+include 'verif_session.php';
 include 'connexion.php';
 ?>
 
@@ -11,12 +12,10 @@ include 'connexion.php';
 </head>
 <body>
 
-    <!-- 🌟 Hexagones décoratifs -->
     <div class="hexagon top-left"></div>
     <div class="hexagon top-right"></div>
     <div class="hexagon bottom-left"></div>
     <div class="hexagon bottom-right"></div>
-    
 
     <?php include 'menu.php'; ?>
 
@@ -34,9 +33,8 @@ include 'connexion.php';
                       INNER JOIN capteurs ON donnees.id_capteur = capteurs.id_capteur 
                       ORDER BY donnees.date_mesure DESC LIMIT 5";
 
-            $result = $conn->query($query);
-
-            while ($row = $result->fetch_assoc()):
+            $stmt = $conn->query($query);
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)):
             ?>
                 <tr>
                     <td><?= htmlspecialchars($row['type']) ?></td>
@@ -48,6 +46,8 @@ include 'connexion.php';
     </main>
 
     <script src="/ruche_connectee/theme.js"></script>
+    <script src="notifications_animation.js"></script>
+    <script src="script.js" defer></script>
 
 </body>
 </html>

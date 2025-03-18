@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Vérifier si le mode sombre est activé dans le localStorage
     if (localStorage.getItem("darkMode") === "enabled") {
-        body.classList.add("dark-mode");
+        document.body.classList.add("dark-mode");
     }
 
     toggleButton.addEventListener("click", function () {
