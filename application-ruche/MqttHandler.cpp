@@ -30,52 +30,74 @@ void MqttHandler::onConnected()
 void MqttHandler::onMessageReceived(const QByteArray &message, const QMqttTopicName &topic)
 {
     qDebug() << "Message reçu sur le topic :" << topic.name();
-
     QJsonDocument jsonDoc = QJsonDocument::fromJson(message);
     if (!jsonDoc.isNull() && jsonDoc.isObject()) {
         QJsonObject jsonObj = jsonDoc.object();
         QString receivedAt = jsonObj.value("received_at").toString();
         QJsonArray rxMetadata = jsonObj["uplink_message"].toObject()["rx_metadata"].toArray();
 
-        if (!rxMetadata.isEmpty()) {
-            float temperature=18;
-            float humidity=20;
-            float mass=10;
-            float pression=10;
-            QString imgPath="qrc:/img.png";
+        double batteryLevel = 100.0; // Valeur par défaut
 
+        if (jsonObj.contains("uplink_message") && jsonObj["uplink_message"].isObject()) {
+            QJsonObject uplinkMsg = jsonObj["uplink_message"].toObject();
+
+            if (uplinkMsg.contains("battery") && uplinkMsg["battery"].isDouble()) {
+                batteryLevel = uplinkMsg["battery"].toDouble();
+            }
+            else if (uplinkMsg.contains("decoded_payload") && uplinkMsg["decoded_payload"].isObject()) {
+                QJsonObject payload = uplinkMsg["decoded_payload"].toObject();
+                if (payload.contains("battery") && payload["battery"].isDouble()) {
+                    batteryLevel = payload["battery"].toDouble();
+                }
+                else if (payload.contains("battery_voltage") && payload["battery_voltage"].isDouble()) {
+                    double voltage = payload["battery_voltage"].toDouble();
+                    batteryLevel = qBound(0.0, ((voltage - 3.0) / 1.2) * 100.0, 100.0);
+                }
+            }
+        }
+
+        qDebug() << "Niveau de batterie détecté:" << batteryLevel << "%";
+        if (!rxMetadata.isEmpty()) {
+            float temperature = 18;
+            float humidity = 20;
+            float mass = 10;
+            float pressure = 10;
+            QString imgPath = "qrc:/img.png";
             qDebug() << "Date de réception :" << receivedAt;
             receivedAt = receivedAt.left(23) + "Z";
             QDateTime receivedDateTime = QDateTime::fromString(receivedAt, Qt::ISODateWithMs);
-
-
-            QList<Ruche*> ruchesList = configurateur->getRuchesList();
-            Ruche* cibleRuche = nullptr;
-            for (Ruche* ruche : ruchesList) {
-                if (ruche->getMqttAdresse() == topic.name()) {
-                    cibleRuche = ruche;
-                    break;
+            QString topicName = topic.name();
+            QString rucheName = "Ruche";
+            if (topicName.contains("/devices/")) {
+                QStringList parts = topicName.split("/devices/");
+                if (parts.size() > 1) {
+                    rucheName = parts[1].split("/")[0];
                 }
             }
-            if (!cibleRuche) {
-                qDebug() << "⚠️ Aucune ruche ne correspond à ce topic, création d'une nouvelle.";
-                cibleRuche = Ruche::createTestRuche();
-                cibleRuche->setMqttAdresse(topic.name());
-                configurateur->addRuche(cibleRuche);
-            } else {
-                qDebug() << "✅ Ruche trouvée avec MQTT Adresse : " << cibleRuche->getMqttAdresse();
+            int rucheId = dbManager->addOrUpdateRuche(rucheName, topicName, batteryLevel);
+            if (rucheId < 0) {
+                qDebug() << "❌ Erreur lors de l'ajout de la ruche dans la base de données";
+                return;
             }
 
-
-            cibleRuche->setData(temperature, humidity, mass, pression, imgPath, receivedDateTime);
-
-            // Enregistrement des données en base avec l'ID de la ruche
-            int rucheId = cibleRuche->getId();
-            dbManager->saveData(rucheId * 10 + 1, temperature, receivedDateTime);
-            dbManager->saveData(rucheId * 10 + 2, humidity, receivedDateTime);
-            dbManager->saveData(rucheId * 10 + 3, mass, receivedDateTime);
-            dbManager->saveData(rucheId * 10 + 4, pression, receivedDateTime);
-
+            Ruche* cibleRuche = configurateur->getRucheById(rucheId);
+            if (!cibleRuche) {
+                qDebug() << "✅ Création d'une nouvelle instance de ruche dans le configurateur";
+                cibleRuche = new Ruche();
+                cibleRuche->setId(rucheId);
+                cibleRuche->setName(rucheName);
+                cibleRuche->setMqttAdresse(topicName);
+                cibleRuche->setBatterie(batteryLevel);
+                configurateur->addRuche(cibleRuche);
+            } else {
+                cibleRuche->setBatterie(batteryLevel);
+            }
+            cibleRuche->setData(temperature, humidity, mass, pressure, imgPath, receivedDateTime);
+            dbManager->saveData(rucheId, 1, temperature, receivedDateTime);
+            dbManager->saveData(rucheId, 2, humidity, receivedDateTime);
+            dbManager->saveData(rucheId, 3, mass, receivedDateTime);
+            dbManager->saveData(rucheId, 4, pressure, receivedDateTime);
+            emit batteryUpdated(rucheId, batteryLevel);
         } else {
             qDebug() << "Pas de métadonnées de localisation.";
         }

@@ -1,54 +1,76 @@
 #include "configurateurruche.h"
 
-
-configurateurRuche::configurateurRuche(QObject *parent) : QObject(parent)
+configurateurRuche::configurateurRuche(QObject *parent)
+    : QObject(parent)
 {
-
+    // Aucune ruche n'est créée par défaut
 }
 
-QQmlListProperty<Ruche> configurateurRuche::getRuchesQml()
+configurateurRuche::~configurateurRuche()
 {
-    return QQmlListProperty<Ruche>(this, &ruchesList, &appendRuche, &countRuche, &atRuche, &clearRuche);
+    // Nettoyer la liste des ruches
+    qDeleteAll(m_ruches);
+    m_ruches.clear();
 }
 
-
-QList<Ruche*> configurateurRuche::getRuchesList() const
+QVariantList configurateurRuche::getRuchesQML()
 {
-    return ruchesList;
+    QVariantList list;
+    for (auto ruche : m_ruches) {
+        list.append(QVariant::fromValue(ruche));
+    }
+    return list;
 }
-
 
 void configurateurRuche::addRuche(Ruche* ruche)
 {
-    if (ruche && !ruchesList.contains(ruche)) {
-        ruchesList.append(ruche);
-        emit ruchesChanged();
+    if (!ruche) return;
+
+    // Vérifier si la ruche existe déjà (par ID)
+    for (auto existingRuche : m_ruches) {
+        if (existingRuche->getId() == ruche->getId()) {
+            qDebug() << "Ruche avec ID " << ruche->getId() << " existe déjà, mise à jour...";
+            // Si une mise à jour spécifique est nécessaire, faites-la ici
+            return;
+        }
+    }
+
+    m_ruches.append(ruche);
+    emit ruchesChanged();
+    qDebug() << "Ruche ajoutée, total : " << m_ruches.size();
+}
+
+void configurateurRuche::removeRuche(int rucheId)
+{
+    for (int i = 0; i < m_ruches.size(); i++) {
+        if (m_ruches.at(i)->getId() == rucheId) {
+            Ruche* ruche = m_ruches.takeAt(i);
+            delete ruche;
+            emit ruchesChanged();
+            return;
+        }
     }
 }
-Ruche* configurateurRuche::createRuche(const QString &mqttAdresse) {
-    Ruche* nouvelleRuche = new Ruche(this, mqttAdresse);
-    addRuche(nouvelleRuche);
-    emit ruchesChanged();
-    return nouvelleRuche;
+
+Ruche* configurateurRuche::getRucheById(int id)
+{
+    for (auto ruche : m_ruches) {
+        if (ruche->getId() == id) {
+            return ruche;
+        }
+    }
+    return nullptr;
 }
 
-
-void configurateurRuche::appendRuche(QQmlListProperty<Ruche> *list, Ruche *ruche)
+Ruche* configurateurRuche::createRuche(const QString& mqttAdresse)
 {
-    reinterpret_cast<QList<Ruche*>*>(list->data)->append(ruche);
-}
+    Ruche* newRuche = new Ruche(this);
+    newRuche->setMqttAdresse(mqttAdresse);
+    // L'ID sera défini lors de l'ajout à la base de données
 
-int configurateurRuche::countRuche(QQmlListProperty<Ruche> *list)
-{
-    return reinterpret_cast<QList<Ruche*>*>(list->data)->size();
-}
+    // Nous n'ajoutons pas la ruche directement au configurateur
+    // car elle sera ajoutée après avoir été enregistrée en BDD
 
-Ruche* configurateurRuche::atRuche(QQmlListProperty<Ruche> *list, int index)
-{
-    return reinterpret_cast<QList<Ruche*>*>(list->data)->at(index);
-}
-
-void configurateurRuche::clearRuche(QQmlListProperty<Ruche> *list)
-{
-    reinterpret_cast<QList<Ruche*>*>(list->data)->clear();
+    qDebug() << "Nouvelle ruche créée avec adresse MQTT: " << mqttAdresse;
+    return newRuche;
 }

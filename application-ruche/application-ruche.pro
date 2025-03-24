@@ -1,7 +1,8 @@
 QT += quick virtualkeyboard
 QT += sql
 QT += mqtt
-QT += charts
+CONFIG += c++11 qml_debug
+
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.

@@ -1,69 +1,99 @@
 #include "ruche.h"
 
-int Ruche::nextId = 0;
-
-Ruche::Ruche(QObject *parent,const QString &mqttAdresse) : QObject(parent), id(nextId++),mqttAdresse(mqttAdresse)
+Ruche::Ruche(QObject *parent)
+    : QObject(parent),m_batterie(100.0),
+    m_id(-1),
+    m_name("Nouvelle Ruche"),
+    m_mqttAdresse(""),
+    m_temperature(0.0),
+    m_humidity(0.0),
+    m_mass(0.0),
+    m_pressure(0.0),
+    m_imagePath("qrc:/placeholder.png")
 {
+    m_lastUpdate = QDateTime::currentDateTime();
 }
 
-void Ruche::setData(float m_temp, float m_hum, float m_mass, float m_pression, QString m_imgPath, QDateTime m_dateTime)
+Ruche* Ruche::createTestRuche()
 {
-        Data newData;
-        newData.temperature = m_temp;
-        newData.humidity = m_hum;
-        newData.mass = m_mass;
-        newData.pression = m_pression;
-        newData.imgPath = m_imgPath;
-        newData.dateTime = m_dateTime;
-        dataList.append(newData);
-/*
-        qDebug() << "Nouvelle donnée ajoutée - Temp:" << newData.temperature
-                 << "Humidité:" << newData.humidity
-                 << "Masse:" << newData.mass
-                 << "Pression:" << newData.pression
-                 << "DateTime:" << newData.dateTime.toString(Qt::ISODate);
-
-        qDebug() << "Nombre total d'entrées dans dataList :" << dataList.size();*/
-        emit dataListChanged();
+    Ruche* ruche = new Ruche();
+    ruche->setId(1);
+    ruche->setName("Ruche Test");
+    ruche->setData(22.5, 65.8, 25.0, 1013.2, "qrc:/placeholder.png", QDateTime::currentDateTime());
+    return ruche;
 }
 
-QVariantList Ruche::getDataList() const {
-    QVariantList list;
-    for (const Data &d : dataList) {
-        QVariantMap map;
-        map["temperature"] = d.temperature;
-        map["humidity"] = d.humidity;
-        map["mass"] = d.mass;
-        map["pression"] = d.pression;
-        map["imgPath"] = d.imgPath;
-        map["dateTime"] = d.dateTime.toString("yyyy-MM-dd HH:mm:ss");
-        list.append(map);
+void Ruche::setId(int id)
+{
+    if (m_id != id) {
+        m_id = id;
+        emit idChanged();
     }
-    return list;
 }
 
-int Ruche::getId()const
+void Ruche::setName(const QString &name)
 {
-    return id;
+    if (m_name != name) {
+        m_name = name;
+        emit nameChanged();
+    }
 }
 
-
-Ruche *Ruche::createTestRuche()
+void Ruche::setMqttAdresse(const QString &adresse)
 {
-    Ruche *testRuche = new Ruche();
-    QDateTime testDateTime = QDateTime::currentDateTime();
-    // Données fictives pour la ruche
-    testRuche->setData(25.0, 50.0, 10.5, 1013.0, "qrc:/images/testImage.png", testDateTime);
-
-    return testRuche;
-}
-
-QString Ruche::getMqttAdresse() const {
-    return mqttAdresse;
-}
-void Ruche::setMqttAdresse(const QString &adresse) {
-    if (mqttAdresse != adresse) {
-        mqttAdresse = adresse;
+    if (m_mqttAdresse != adresse) {
+        m_mqttAdresse = adresse;
         emit mqttAdresseChanged();
     }
 }
+
+void Ruche::setData(float temperature, float humidity, float mass, float pressure,
+                    const QString &imagePath, const QDateTime &timestamp)
+{
+    bool dataChanged = false;
+
+    if (m_temperature != temperature) {
+        m_temperature = temperature;
+        emit temperatureChanged();
+        dataChanged = true;
+    }
+
+    if (m_humidity != humidity) {
+        m_humidity = humidity;
+        emit humidityChanged();
+        dataChanged = true;
+    }
+
+    if (m_mass != mass) {
+        m_mass = mass;
+        emit massChanged();
+        dataChanged = true;
+    }
+
+    if (m_pressure != pressure) {
+        m_pressure = pressure;
+        emit pressureChanged();
+        dataChanged = true;
+    }
+
+    if (m_imagePath != imagePath) {
+        m_imagePath = imagePath;
+        emit imagePathChanged();
+        dataChanged = true;
+    }
+
+    if (m_lastUpdate != timestamp) {
+        m_lastUpdate = timestamp;
+        emit lastUpdateChanged();
+        dataChanged = true;
+    }
+    if (dataChanged) {
+        qDebug() << "Données de la ruche" << m_id << "mises à jour:"
+                 << "Temp:" << m_temperature
+                 << "Humidité:" << m_humidity
+                 << "Poids:" << m_mass
+                 << "Pression:" << m_pressure;
+    }
+}
+
+

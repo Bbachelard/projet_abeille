@@ -1,12 +1,18 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>Page1.qml</file>
-        <file>Page2.qml</file>
-        <file>Page3.qml</file>
-        <file>Page4A.qml</file>
-        <file>Page4U.qml</file>
-        <file>Page5.qml</file>
-        <file>Page5_Popup.qml</file>
+        <file>P_Acceuil.qml</file>
+        <file>P_Authentification.qml</file>
+        <file>P_UView.qml</file>
+        <file>P_AView.qml</file>
+        <file>P_AData.qml</file>
+        <file>P_UData.qml</file>
+        <file>CapteursList.qml</file>
+        <file>GraphView.qml</file>
+        <file>DataTable.qml</file>
+        <file>DataManager.qml</file>
+        <file>P_SAView.qml</file>
+        <file>RucheView.qml</file>
+        <file>RucheList.qml</file>
     </qresource>
 </RCC>
