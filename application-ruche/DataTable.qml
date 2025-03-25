@@ -7,24 +7,14 @@ Item {
     width: parent.width
     height: parent.height
 
-    // Propriétés exposées
     property var tableData: []
     property string capteurType: ""
-
-    // Propriétés internes
     property string sortColumn: "date_mesure"
     property bool sortAscending: false
     property string filterValue: ""
-
-    // Fonction pour mettre à jour le modèle de données
     function updateTableModel() {
-        // Vider le modèle
         tableModel.clear();
-
-        // Si aucune donnée, sortir
         if (!tableData || tableData.length === 0) return;
-
-        // Copier les données pour ne pas modifier l'original
         var dataCopy = [];
         for (var i = 0; i < tableData.length; i++) {
             dataCopy.push({
@@ -34,7 +24,6 @@ Item {
             });
         }
 
-        // Appliquer le filtre
         if (filterValue) {
             dataCopy = dataCopy.filter(function(item) {
                 return item.typeCapteur.toString().toLowerCase().includes(filterValue.toLowerCase()) ||
@@ -43,7 +32,6 @@ Item {
             });
         }
 
-        // Trier les données
         dataCopy.sort(function(a, b) {
             var aValue, bValue;
 
@@ -61,7 +49,6 @@ Item {
                 bValue = b[sortColumn];
             }
 
-            // Gérer les valeurs non définies
             if (aValue === undefined) aValue = "";
             if (bValue === undefined) bValue = "";
 
@@ -71,32 +58,24 @@ Item {
             return 0;
         });
 
-        // Ajouter au modèle
         for (var j = 0; j < dataCopy.length; j++) {
             tableModel.append(dataCopy[j]);
         }
     }
 
-    // Fonction pour trier par colonne
     function sortByColumn(column) {
         if (sortColumn === column) {
-            // Inverser l'ordre si on clique sur la même colonne
             sortAscending = !sortAscending;
         } else {
-            // Nouvelle colonne, ordre ascendant par défaut
             sortColumn = column;
             sortAscending = true;
         }
-
-        // Mettre à jour le modèle
         updateTableModel();
     }
 
     Column {
         anchors.fill: parent
         spacing: 10
-
-        // Titre du tableau
         Text {
             text: "Données du capteur: " + capteurType
             font.pixelSize: 18
@@ -106,7 +85,6 @@ Item {
         Row {
             spacing: 10
             anchors.horizontalCenter: parent.horizontalCenter
-
             TextField {
                 id: filterField
                 width: 150
@@ -116,26 +94,25 @@ Item {
                     updateTableModel();
                 }
             }
-
             ComboBox {
                 id: sortOrderCombo
                 width: 250
                 model: ["Plus récent", "Plus ancien", "Valeurs croissantes", "Valeurs décroissantes"]
                 onCurrentIndexChanged: {
                     switch (currentIndex) {
-                        case 0: // Plus récent d'abord
+                        case 0:
                             sortColumn = "date_mesure";
                             sortAscending = false;
                             break;
-                        case 1: // Plus ancien d'abord
+                        case 1:
                             sortColumn = "date_mesure";
                             sortAscending = true;
                             break;
-                        case 2: // Valeurs croissantes
+                        case 2:
                             sortColumn = "valeur";
                             sortAscending = true;
                             break;
-                        case 3: // Valeurs décroissantes
+                        case 3:
                             sortColumn = "valeur";
                             sortAscending = false;
                             break;
@@ -145,12 +122,11 @@ Item {
             }
 
             Button {
-                text: "Actualiser"
+                text: "actualiser"
                 onClicked: updateTableModel()
             }
         }
 
-        // En-tête du tableau
         Rectangle {
             width: parent.width - 40
             height: 40
@@ -218,7 +194,6 @@ Item {
             }
         }
 
-        // Liste des données
         Rectangle {
             width: parent.width - 40
             height: parent.height - 140
@@ -281,8 +256,6 @@ Item {
                     }
                 }
             }
-
-            // Texte si aucune donnée
             Text {
                 anchors.centerIn: parent
                 text: "Aucune donnée disponible"
@@ -291,7 +264,6 @@ Item {
             }
         }
 
-        // Information sur le nombre d'enregistrements
         Text {
             text: tableModel.count + " enregistrement(s)"
             font.pixelSize: 12

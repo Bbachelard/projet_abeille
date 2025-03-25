@@ -96,7 +96,6 @@ Item {
             font.bold: true
             anchors.horizontalCenter: parent.horizontalCenter
         }
-        // Contrôles de zoom et déplacement
         Row {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 15

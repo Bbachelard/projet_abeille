@@ -7,27 +7,16 @@ Item {
     width: parent.width
     height: parent.height
 
-    // Signal émis lorsqu'un capteur est sélectionné
     signal capteurSelected(int capteurId)
-
-    // Signal pour supprimer un capteur
     signal capteurDeleted(int capteurId)
-
-    // Signal pour ajouter un capteur
     signal addCapteurRequested()
+    signal showImagesRequested(int rucheId)
 
-    // Propriété pour savoir si on est dans la vue A (pour afficher les boutons)
+    property int rucheId: -1
     property bool isViewA: false
-
-    // Propriété pour stocker les données des capteurs (en privé)
     property var _internalCapteursData: []
-
-    // Fonction pour mettre à jour les capteurs (au lieu d'un binding direct)
     function updateCapteurs(newCapteursData) {
-        // Utiliser une copie pour éviter les bindings
         _internalCapteursData = JSON.parse(JSON.stringify(newCapteursData));
-
-        // Mettre à jour le modèle
         capteursModel.clear();
         for (var i = 0; i < _internalCapteursData.length; i++) {
             capteursModel.append({
@@ -36,47 +25,66 @@ Item {
                 "info": "Capteur ID: " + _internalCapteursData[i].id_capteur
             });
         }
+        var hasImagesItem = false;
+        for (var j = 0; j < capteursModel.count; j++) {
+            if (capteursModel.get(j).type.toLowerCase() === "images") {
+                hasImagesItem = true;
+                break;
+            }
+        }
+        if (!hasImagesItem) {
+            capteursModel.append({
+                "id": -999, // ID spécial pour le capteur d'images
+                "type": "Images",
+                "info": "Galerie photos de la ruche"
+            });
+        }
     }
 
     Column {
         anchors.fill: parent
         spacing: 10
-
-        Row {
-            width: parent.width
-            height: 40
-            spacing: 10
-            anchors.horizontalCenter: parent.horizontalCenter
-
-            Text {
-                text: "Liste des capteurs"
-                font.pixelSize: 18
-                font.bold: true
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            // Bouton d'ajout de capteur (uniquement visible dans la vue A)
-            Rectangle {
-                id: addButton
-                width: 30
-                height: 30
-                radius: width/2
-                color: addMouseArea.pressed ? "#4CAF50" : "#66BB6A"
-                visible: isViewA
-                anchors.verticalCenter: parent.verticalCenter
-
-                Text {
-                    text: "+"
-                    font.pixelSize: 20
-                    color: "white"
-                    anchors.centerIn: parent
+        Item {
+               width: parent.width
+               height: 40
+            Row {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.leftMargin: 10
+                anchors.rightMargin: 10
+                spacing: 15
+                Item {
+                    width: parent.width - addButton.width - parent.spacing
+                    height: parent.height
+                    Text {
+                        text: "Liste des capteurs"
+                        font.pixelSize: 18
+                        font.bold: true
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
                 }
+                Rectangle {
+                    id: addButton
+                    width: 30
+                    height: 30
+                    radius: width/2
+                    color: addMouseArea.pressed ? "#4CAF50" : "#66BB6A"
+                    visible: isViewA
+                    anchors.verticalCenter: parent.verticalCenter
 
-                MouseArea {
-                    id: addMouseArea
-                    anchors.fill: parent
-                    onClicked: {
-                        addCapteurRequested();
+                    Text {
+                        text: "+"
+                        font.pixelSize: 20
+                        color: "white"
+                        anchors.centerIn: parent
+                    }
+
+                    MouseArea {
+                        id: addMouseArea
+                        anchors.fill: parent
+                        onClicked: {
+                            addCapteurRequested();
+                        }
                     }
                 }
             }
@@ -106,8 +114,6 @@ Item {
                     anchors.fill: parent
                     anchors.margins: 10
                     spacing: 10
-
-                    // Contenu du capteur
                     Column {
                         Layout.fillWidth: true
                         spacing: 5
@@ -123,15 +129,13 @@ Item {
                             font.pixelSize: 12
                         }
                     }
-
-                    // Bouton de suppression (uniquement visible dans la vue A)
                     Rectangle {
                         id: deleteButton
                         width: 30
                         height: 30
                         radius: width/2
                         color: delBtnMouseArea.pressed ? "#ff6666" : "#ff9999"
-                        visible: isViewA
+                        visible: isViewA && model.type !== "Images"
                         Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
 
                         Text {
@@ -145,7 +149,6 @@ Item {
                             id: delBtnMouseArea
                             anchors.fill: parent
                             onClicked: {
-                                // Émettre le signal de suppression avec l'ID du capteur
                                 capteurDeleted(model.id);
                             }
                         }
@@ -154,14 +157,19 @@ Item {
 
                 MouseArea {
                     anchors.fill: parent
-                    anchors.rightMargin: isViewA ? 50 : 0 // Éviter le chevauchement avec le bouton de suppression
+                    anchors.rightMargin: isViewA ? 50 : 0
                     onClicked: {
-                        capteurSelected(model.id);
+                        if (model.type === "Images") {
+                            showImagesRequested(rucheId);
+                        } else {
+                            capteurSelected(model.id);
+                        }
                     }
                 }
             }
 
             ScrollBar.vertical: ScrollBar {}
+
         }
 
         Text {

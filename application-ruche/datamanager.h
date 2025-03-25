@@ -28,6 +28,7 @@ public:
     Q_INVOKABLE int addOrUpdateRuche(const QString &name, const QString &adress, double batterie = 100.0);
     Q_INVOKABLE bool updateRucheBatterie(int rucheId, double batterie);
     Q_INVOKABLE QVariantList getRuchesList();
+    Q_INVOKABLE QVariantList getRucheImages(int rucheId);
 
 
     Q_INVOKABLE bool authentification(QString a, QString b);

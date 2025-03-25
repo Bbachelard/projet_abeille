@@ -14,5 +14,6 @@
         <file>P_SAView.qml</file>
         <file>RucheView.qml</file>
         <file>RucheList.qml</file>
+        <file>ImageGallery.qml</file>
     </qresource>
 </RCC>

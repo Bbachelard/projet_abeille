@@ -10,12 +10,10 @@ CONFIG += c++11 qml_debug
 
 SOURCES += \
         MqttHandler.cpp \
-        administrateur.cpp \
         configurateurruche.cpp \
         datamanager.cpp \
         main.cpp \
-        ruche.cpp \
-        utilisateur.cpp
+        ruche.cpp
 
 RESOURCES += qml.qrc \
     images.qrc
@@ -30,12 +28,10 @@ QML_DESIGNER_IMPORT_PATH =
 
 HEADERS += \
     MqttHandler.h \
-    administrateur.h \
     configurateurruche.h \
     data.h \
     datamanager.h \
-    ruche.h \
-    utilisateur.h
+    ruche.h
 
 DISTFILES += \
     ../../../../../media/benjy/BT-7274/cours/projets/projet ruche/design IHM/arressai.png

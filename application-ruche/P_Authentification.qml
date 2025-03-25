@@ -26,81 +26,81 @@ Item {
         }
     }
     Column {
-                spacing: 20
+        spacing: 20
+        anchors.centerIn: parent
+        TextField {
+            id: usernameField
+            width: 300
+            placeholderText: "Nom d'utilisateur"
+            font.pixelSize: 18
+            focus: true
+            onPressed: {
+                Qt.inputMethod.show()
+            }
+        }
+        TextField {
+            id: passwordField
+            width: 300
+            placeholderText: "Mot de passe"
+            onPressed: {
+                Qt.inputMethod.show()
+            }
+            font.pixelSize: 18
+            echoMode: TextInput.Password
+
+        }
+        Rectangle {
+            width: parent.width
+            height: 50
+            color: "transparent"
+
+            Text {
+                id: errorMessage
+                text: ""
+                color: "yellow"
+                font.pixelSize: 18
+                font.bold: true
                 anchors.centerIn: parent
-                TextField {
-                    id: usernameField
-                    width: 300
-                    placeholderText: "Nom d'utilisateur"
-                    font.pixelSize: 18
-                    focus: true
-                    onPressed: {
-                        Qt.inputMethod.show()
+                visible: false
+            }
+        }
+        Timer {
+            id: hideError
+            interval: 3000
+            onTriggered: errorMessage.visible = false
+        }
+        Button {
+            text: "Se connecter"
+            width: 200
+            height: 40
+
+            onClicked:{
+                if (usernameField.text === "" || passwordField.text === "") {
+                    console.log("Veuillez remplir tous les champs.");
+                    errorMessage.text = "Veuillez remplir tous les champs!";
+                    errorMessage.visible = true;
+                    hideError.start();
+                }else{
+                    if (dManager.authentification(usernameField.text, passwordField.text)) {
+                    console.log("Connexion réussie !");
+                    if (dManager.is_superadmin(usernameField.text))
+                    {
+                        livre.direction = 2;
+                        livre.push("P_SAView.qml");
+                    }
+                    else{
+                        livre.direction = 2;
+                        livre.push("P_AView.qml");
+                    }
+
+                } else {
+                    console.log("Identifiants incorrects !");
+                    errorMessage.text = "Identifiants incorrects !";
+                    errorMessage.visible = true;
+                    hideError.start();
                     }
                 }
-                TextField {
-                    id: passwordField
-                    width: 300
-                    placeholderText: "Mot de passe"
-                    onPressed: {
-                        Qt.inputMethod.show()
-                    }
-                    font.pixelSize: 18
-                    echoMode: TextInput.Password
-
-                }
-                Rectangle {
-                    width: parent.width
-                    height: 50
-                    color: "transparent"
-
-                    Text {
-                        id: errorMessage
-                        text: ""
-                        color: "yellow"
-                        font.pixelSize: 18
-                        font.bold: true
-                        anchors.centerIn: parent
-                        visible: false
-                    }
-                }
-                Timer {
-                    id: hideError
-                    interval: 3000
-                    onTriggered: errorMessage.visible = false
-                }
-                Button {
-                    text: "Se connecter"
-                    width: 200
-                    height: 40
-
-                    onClicked:{
-                        if (usernameField.text === "" || passwordField.text === "") {
-                            console.log("Veuillez remplir tous les champs.");
-                            errorMessage.text = "Veuillez remplir tous les champs!";
-                            errorMessage.visible = true;
-                            hideError.start();
-                        }else{
-                            if (dManager.authentification(usernameField.text, passwordField.text)) {
-                            console.log("Connexion réussie !");
-                            if (dManager.is_superadmin(usernameField.text))
-                            {
-                                livre.direction = 2;
-                                livre.push("P_SAView.qml");
-                            }
-                            else{
-                                livre.direction = 2;
-                                livre.push("P_AView.qml");
-                            }
-
-                        } else {
-                            console.log("Identifiants incorrects !");
-                            errorMessage.text = "Identifiants incorrects !";
-                            errorMessage.visible = true;
-                            hideError.start();
-                            }
-                        }
-                    }
-                }
+            }
+        }
     }
 }

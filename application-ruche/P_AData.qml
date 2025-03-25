@@ -11,7 +11,7 @@ Item {
     property int rucheId: -1
     property string rucheName: "Ruche"
     property var rucheData: []
-    // Utiliser RucheView comme composant principal
+
     RucheView {
         id: rucheView
         anchors.fill: parent
@@ -20,20 +20,16 @@ Item {
         returnDirection: 1
         isViewA: true
 
-        // Transmettre les propriétés reçues
         rucheId: root.rucheId
         rucheName: root.rucheName
         rucheData: root.rucheData
 
-        // Connecter les fonctions de gestion des capteurs
         onCapteurDeletedRequest: function(capteurId) {
-            // Montrer le popup de confirmation
             confirmDeleteCapteurDialog.capteurId = capteurId;
             confirmDeleteCapteurDialog.open();
         }
 
         onCapteurAddRequest: function() {
-            // Montrer le popup d'ajout
             addCapteurDialog.rucheId = rucheId;
             addCapteurDialog.open();
         }
@@ -51,8 +47,6 @@ Item {
 
         property int capteurId: -1
         property string capteurType: "ce capteur"
-
-        // Centrer le popup
         x: (parent.width - width) / 2
         y: (parent.height - height) / 2
 
@@ -92,29 +86,13 @@ Item {
                         height: 40
 
                         onClicked: {
-                            // Exécuter la suppression
                             var success = dManager.deleteCapteur(confirmDeleteCapteurDialog.capteurId);
-
-                            if (success) {
-                                // Afficher un message de succès
-                                successMessage.text = "Capteur supprimé avec succès.";
-                                successMessage.visible = true;
-                                successTimer.restart();
-
-                                // Actualiser les données de la ruche
+                            if (capteurId > 0) {
                                 rucheView.refreshData();
-                            } else {
-                                // Afficher un message d'erreur
-                                errorMessage.text = "Erreur lors de la suppression du capteur.";
-                                errorMessage.visible = true;
-                                errorTimer.restart();
+                                confirmDeleteCapteurDialog.close();
                             }
-
-                            // Fermer le popup
-                            confirmDeleteCapteurDialog.close();
                         }
                     }
-
                     Button {
                         text: "Annuler"
                         width: 120
@@ -125,12 +103,11 @@ Item {
             }
         }
     }
-
     // Popup d'ajout de capteur
     Popup {
         id: addCapteurDialog
         width: 300
-        height: 250
+        height: 320
         modal: true
         focus: true
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
@@ -160,13 +137,55 @@ Item {
                     font.bold: true
                 }
 
-                ComboBox {
-                    id: capteurTypeCombo
+                // Champ de texte pour le type de capteur
+                TextField {
+                    id: capteurTypeInput
                     width: parent.width
-                    model: ["Température", "Humidité", "Poids", "Pression"]
+                    placeholderText: "Type de capteur"
+                    font.pixelSize: 14
+                    onPressed: {
+                        Qt.inputMethod.show()
+                    }
+                }
 
-                    Component.onCompleted: {
-                        currentIndex = 0;
+                Column {
+                    width: parent.width
+                    spacing: 5
+
+                    Text {
+                        text: "Types courants:"
+                        font.pixelSize: 12
+                        color: "#666666"
+                    }
+
+                    Flow {
+                        width: parent.width
+                        spacing: 5
+
+                        Repeater {
+                            model: ["Température", "Humidité", "Poids", "Pression", "Luminosité", "CO2", "Son"]
+
+                            delegate: Rectangle {
+                                height: 26
+                                width: suggestionText.width + 20
+                                color: "#e0e0e0"
+                                radius: 13
+
+                                Text {
+                                    id: suggestionText
+                                    text: modelData
+                                    anchors.centerIn: parent
+                                    font.pixelSize: 12
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        capteurTypeInput.text = modelData;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -201,16 +220,24 @@ Item {
 
                         onClicked: {
                             if (addCapteurDialog.rucheId > 0) {
+                                // Vérifier que le type de capteur a été saisi
+                                if (capteurTypeInput.text.trim() === "") {
+                                    // Afficher un message d'erreur
+                                    errorMessage.text = "Veuillez saisir un type de capteur.";
+                                    errorMessage.visible = true;
+                                    errorTimer.restart();
+                                    return;
+                                }
+
                                 // Ajouter le capteur à la base de données
                                 var capteurId = dManager.addCapteur(
                                     addCapteurDialog.rucheId,
-                                    capteurTypeCombo.currentText,
+                                    capteurTypeInput.text.trim(),
                                     capteurLocalisation.text,
                                     capteurDescription.text
                                 );
 
                                 if (capteurId > 0) {
-                                    // Rafraîchir les données
                                     rucheView.refreshData();
 
                                     // Afficher un message de succès
@@ -222,6 +249,7 @@ Item {
                                     addCapteurDialog.close();
 
                                     // Réinitialiser les champs
+                                    capteurTypeInput.text = "";
                                     capteurLocalisation.text = "";
                                     capteurDescription.text = "";
                                 } else {

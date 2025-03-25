@@ -8,7 +8,6 @@ Item {
     width: parent.width
     height: parent.height
 
-    // Propriétés pour les données de la ruche
     property int rucheId: -1
     property string rucheName: "Ruche"
     property var ruche: null
@@ -20,46 +19,30 @@ Item {
     property string selectedCapteurType: ""
     property bool showAllCapteurs: false
     property double rucheBattery: 0
-
-    // Propriétés personnalisables
     property string backgroundSource: ""
     property int returnDirection: 1
     property bool isViewA: false
-
-    // Signaux pour la gestion des capteurs
     signal capteurDeletedRequest(int capteurId)
     signal capteurAddRequest()
-
-    // Création du gestionnaire de données
     DataManager {
         id: dataManager
 
-        // Gestionnaire du signal de données chargées
         onDataLoaded: function(data) {
-            // Utiliser une copie pour éviter les bindings
             capteursData = JSON.parse(JSON.stringify(data));
-            // Mise à jour du ComboBox des capteurs
             updateCapteurComboBox();
         }
 
-        // Gestionnaire du signal de données de graphique chargées
         onChartDataLoaded: function(data, minDate, maxDate, capteurType, isMultiple) {
-            // Utiliser une copie pour éviter les bindings
             graphData = JSON.parse(JSON.stringify(data));
             selectedCapteurType = capteurType;
-
-            // Mise à jour des composants d'interface
             updateGraphView(data, minDate, maxDate, capteurType, isMultiple);
             updateDataTable(data, capteurType);
         }
     }
 
     Component.onCompleted: {
-        // Initialiser le gestionnaire de données
         dataManager.initialize(dManager);
-
         if (rucheData && rucheData.length > 0) {
-            // Utiliser une copie profonde pour éviter les bindings
             capteursData = JSON.parse(JSON.stringify(rucheData));
             updateCapteurComboBox();
             if (capteursData.length > 0 && capteurSelectionne > 0) {
@@ -70,27 +53,20 @@ Item {
         }
         loadRucheBattery();
     }
-
-    // Fonctions d'interface utilisateur
     function refreshData() {
         if (rucheId > 0) {
             var data = dataManager.loadRucheData(rucheId);
-            // Ne pas assigner directement pour éviter un binding
             if (data && data.length > 0) {
-                // Utiliser une copie pour éviter les bindings
                 capteursData = JSON.parse(JSON.stringify(data));
             }
         }
     }
-
     function refreshChartData() {
         if (rucheId > 0) {
-            // Passer une copie des données pour éviter les bindings
             var capteursCopy = JSON.parse(JSON.stringify(capteursData));
             dataManager.loadChartData(rucheId, capteurSelectionne, capteursCopy, showAllCapteurs);
         }
     }
-
     function updateCapteurComboBox() {
         capteurComboModel.clear();
         capteurComboModel.append({"name": "Tous", "id": -1});
@@ -103,9 +79,7 @@ Item {
             }
         }
     }
-
     function updateGraphView(data, minDate, maxDate, capteurType, isMultiple) {
-        // Passer une copie des données pour éviter les bindings
         graphView.chartData = JSON.parse(JSON.stringify(data));
         graphView.chartTitle = isMultiple ? "Évolution de tous les capteurs" : ("Évolution des " + capteurType);
         graphView.capteurType = capteurType;
@@ -114,14 +88,11 @@ Item {
         graphView.maxDate = maxDate;
         graphView.initGraphValues();
     }
-
     function updateDataTable(data, capteurType) {
-        // Passer une copie des données pour éviter les bindings
         dataTable.tableData = JSON.parse(JSON.stringify(data));
         dataTable.capteurType = capteurType;
         dataTable.updateTableModel();
     }
-
     function loadRucheBattery() {
         if (rucheId > 0) {
             var ruches = dManager.getRuchesList();
@@ -133,7 +104,6 @@ Item {
             }
         }
     }
-
     Connections {
         target: RucheManager
         function onBatteryUpdated(rucheId, batteryValue) {
@@ -142,8 +112,6 @@ Item {
             }
         }
     }
-
-    // Interface utilisateur
     Image {
         source: backgroundSource
         anchors.fill: parent
@@ -175,7 +143,6 @@ Item {
                 border.width: 1
                 anchors.verticalCenter: parent.verticalCenter
 
-                // Petite pointe de la batterie
                 Rectangle {
                     width: 2
                     height: 10
@@ -184,7 +151,6 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
-                // Niveau de batterie
                 Rectangle {
                     width: parent.width * Math.max(0, Math.min(1, rucheBattery / 100))
                     height: parent.height - 2
@@ -192,16 +158,15 @@ Item {
                     anchors.leftMargin: 1
                     anchors.verticalCenter: parent.verticalCenter
 
-                    // Couleur en fonction du niveau de batterie
                     color: {
                         if (rucheBattery > 60) return "#4CAF50";  // Vert
                         if (rucheBattery > 30) return "#FFC107";  // Jaune
                         return "#F44336";  // Rouge
                     }
                 }
+
             }
 
-            // Texte du pourcentage
             Text {
                 text: Math.round(rucheBattery) + "%"
                 font.pixelSize: 14
@@ -213,6 +178,26 @@ Item {
                 }
                 anchors.verticalCenter: parent.verticalCenter
             }
+        }
+    }
+    Button {
+        text: "Actualiser"
+        width: 120
+        height: 40
+        anchors {
+            top: parent.top
+            left: parent.left
+            leftMargin: 90
+            topMargin: 10
+        }
+        onClicked: {
+            refreshData();
+            loadRucheBattery();
+            refreshChartData();
+            imageGallery.chargerImages();
+            successMessage.text = "Données actualisées";
+            successMessage.visible = true;
+            successTimer.restart();
         }
     }
 
@@ -287,6 +272,10 @@ Item {
                 text: "Données"
                 onClicked: stackLayout.currentIndex = 2
             }
+            Button {
+                text: "Images"
+                onClicked: stackLayout.currentIndex = 3
+            }
         }
 
         StackLayout {
@@ -295,14 +284,11 @@ Item {
             height: 300
             currentIndex: 0
 
-            // Page 1: Liste des capteurs
             CapteursList {
                 id: capteursList
                 isViewA: root.isViewA
-
-                // Éviter le binding direct
+                rucheId: root.rucheId
                 Component.onCompleted: {
-                    // Passer une copie des données
                     capteursList.updateCapteurs(capteursData);
                 }
 
@@ -310,7 +296,7 @@ Item {
                     capteurSelectionne = capteurId;
                     showAllCapteurs = false;
                     refreshChartData();
-                    stackLayout.currentIndex = 1; // Passer à l'affichage graphique
+                    stackLayout.currentIndex = 1;
                 }
 
                 // Relayer les signaux vers le parent
@@ -320,6 +306,9 @@ Item {
 
                 onAddCapteurRequested: function() {
                     capteurAddRequest();
+                }
+                onShowImagesRequested: function(rucheId) {
+                    stackLayout.currentIndex = 3; // Passer directement à l'onglet Images
                 }
             }
 
@@ -333,6 +322,12 @@ Item {
             DataTable {
                 id: dataTable
                 capteurType: selectedCapteurType
+            }
+            // Page 4: Galerie d'images
+            ImageGallery {
+                id: imageGallery
+                rucheId: root.rucheId
+                rucheName: root.rucheName
             }
         }
     }

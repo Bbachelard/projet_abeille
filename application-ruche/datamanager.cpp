@@ -330,7 +330,36 @@ bool dataManager::deleteCapteur(int capteurId)
 }
 
 
+QVariantList dataManager::getRucheImages(int rucheId)
+{
+    QVariantList results;
 
+    if (rucheId <= 0) {
+        qDebug() << "ID de ruche invalide pour récupérer des images:" << rucheId;
+        return results;
+    }
+
+    QSqlQuery query;
+    query.prepare("SELECT id_image, chemin_fichier, date_capture FROM images WHERE id_ruche = ? ORDER BY date_capture DESC");
+    query.addBindValue(rucheId);
+
+    if (query.exec()) {
+        while (query.next()) {
+            QVariantMap image;
+            image["id_image"] = query.value("id_image").toInt();
+            image["chemin_fichier"] = query.value("chemin_fichier").toString();
+            image["date_capture"] = query.value("date_capture").toString();
+
+            results.append(image);
+        }
+
+        qDebug() << "Images récupérées pour la ruche" << rucheId << ":" << results.size();
+    } else {
+        qDebug() << "Erreur lors de la récupération des images:" << query.lastError().text();
+    }
+
+    return results;
+}
 
 
 
