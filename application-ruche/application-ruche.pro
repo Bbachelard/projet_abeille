@@ -11,7 +11,10 @@ CONFIG += c++11 qml_debug
 SOURCES += \
         MqttHandler.cpp \
         configurateurruche.cpp \
-        datamanager.cpp \
+        datamanager_auth.cpp \
+        datamanager_capteur.cpp \
+        datamanager_core.cpp \
+        datamanager_ruche.cpp \
         main.cpp \
         ruche.cpp
 

@@ -35,11 +35,8 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<Ruche>("com.example.ruche", 1, 0, "Ruche");
     qmlRegisterSingletonInstance("com.example.ruche", 1, 0, "RucheManager", &configurateur);
-
     engine.rootContext()->setContextProperty("dManager", &dManager);
     mqttHandler.connectToBroker();
-
-
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(

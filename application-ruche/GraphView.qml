@@ -35,9 +35,9 @@ Item {
     function initGraphValues() {
         // Définir les valeurs min/max et les graduations en fonction du type de capteur
         if (capteurType.toLowerCase().includes("température") || capteurType.toLowerCase().includes("temperature")) {
-            minValue = 0;
-            maxValue = 40;
-            yAxisLabels = [0, 5, 10, 15, 20, 25, 30, 35, 40];
+            minValue = -5;
+            maxValue = 60;
+            yAxisLabels = [-5, 0, 5, 10, 15, 20, 25, 30, 35, 40,45,50,55,60];
         } else if (capteurType.toLowerCase().includes("humidité") || capteurType.toLowerCase().includes("humidite")) {
             minValue = 0;
             maxValue = 100;

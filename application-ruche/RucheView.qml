@@ -23,6 +23,7 @@ Item {
     property int returnDirection: 1
     property bool isViewA: false
     signal capteurDeletedRequest(int capteurId)
+
     signal capteurAddRequest()
     DataManager {
         id: dataManager
@@ -328,6 +329,7 @@ Item {
                 id: imageGallery
                 rucheId: root.rucheId
                 rucheName: root.rucheName
+                isAdmin: root.isViewA
             }
         }
     }

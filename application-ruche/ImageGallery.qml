@@ -11,6 +11,14 @@ Item {
     property int rucheId: -1
     property string rucheName: "Ruche"
 
+    // Les droits administrateur
+    property bool isAdmin: false
+
+    // L'état de l'importation
+    property bool importInProgress: false
+    property string statusMessage: ""
+    property string statusType: "info"
+
     ListModel {
         id: imagesModel
     }
@@ -39,7 +47,6 @@ Item {
         console.log("Images chargées:", imagesModel.count);
     }
 
-    // Fonction pour formater les dates
     function formatDate(dateString) {
         try {
             var date = new Date(dateString);
@@ -49,15 +56,168 @@ Item {
         }
     }
 
+    function importerImages() {
+        if (typeof dManager !== "undefined" && typeof dManager.executeShellCommand === "function") {
+            importInProgress = true;
+            statusMessage = "Importation en cours...";
+            statusType = "info";
+
+            // Appelez la fonction C++ exposée
+            var command = "/home/pi/sync_images.sh " + rucheId;
+            var result = dManager.executeShellCommand(command);
+            console.log("Résultat de l'exécution du script:", result);
+
+            // Analyser le résultat pour afficher un message approprié
+            if (result.startsWith("Succès:")) {
+                if (result.includes("Carte SD montée avec succès")) {
+                    // Analyser le nombre d'images traitées
+                    var match = result.match(/(\d+) nouvelles images traitées/);
+                    if (match && match[1]) {
+                        var nbImages = parseInt(match[1]);
+                        if (nbImages > 0) {
+                            statusMessage = nbImages + " nouvelle(s) image(s) importée(s) avec succès";
+                            statusType = "success";
+                        } else {
+                            statusMessage = "Toutes les images sont déjà importées";
+                            statusType = "info";
+                        }
+                    } else {
+                        statusMessage = "Importation terminée avec succès";
+                        statusType = "success";
+                    }
+                } else if (result.includes("Aucune carte SD détectée")) {
+                    statusMessage = "Aucune carte SD insérée";
+                    statusType = "warning";
+                } else if (result.includes("Les dossiers sont déjà synchronisés")) {
+                    statusMessage = "Toutes les images sont déjà synchronisées";
+                    statusType = "info";
+                } else {
+                    statusMessage = "Importation terminée avec succès";
+                    statusType = "success";
+                }
+            } else {
+                if (result.includes("special device /dev/sda1 does not exist")) {
+                    statusMessage = "Aucune carte SD insérée";
+                    statusType = "warning";
+                } else {
+                    statusMessage = "Erreur lors de l'importation";
+                    statusType = "error";
+                }
+            }
+
+            importInProgress = false;
+
+            // Reload images after import
+            chargerImages();
+
+            // Afficher le popup avec le message de statut
+            statusPopup.open();
+
+            // Masquer automatiquement le message après un délai
+            statusTimer.restart();
+        } else {
+            console.error("La fonction executeShellCommand n'est pas disponible dans dManager");
+            statusMessage = "Erreur: fonction d'importation non disponible";
+            statusType = "error";
+            statusPopup.open();
+        }
+    }
+    function supprimerImage(imageId, cheminImage) {
+        console.log("Suppression de l'image:", imageId, "chemin:", cheminImage);
+
+        if (typeof dManager !== "undefined" && typeof dManager.deleteImage === "function") {
+            var result = dManager.deleteImage(imageId, cheminImage);
+            if (result) {
+                chargerImages();
+                statusMessage = "Image supprimée avec succès";
+                statusType = "success";
+                statusPopup.open();
+                statusTimer.restart();
+            } else {
+                statusMessage = "Erreur lors de la suppression de l'image";
+                statusType = "error";
+                statusPopup.open();
+                statusTimer.restart();
+            }
+        } else {
+            console.error("La fonction deleteImage n'est pas disponible dans dManager");
+            statusMessage = "Erreur: fonction de suppression non disponible";
+            statusType = "error";
+            statusPopup.open();
+        }
+    }
+    Timer {
+        id: statusTimer
+        interval: 2500
+        onTriggered: {
+            statusPopup.close();
+        }
+    }
+
+
     // Interface
     Column {
         anchors.fill: parent
         spacing: 10
-        Text {
-            text: "Galerie d'images "
-            font.pixelSize: 18
-            font.bold: true
-            anchors.horizontalCenter: parent.horizontalCenter
+
+        // En-tête avec titre et bouton d'importation
+        Rectangle {
+            width: parent.width
+            height: 40
+            color: "transparent"
+
+            RowLayout {
+                anchors.fill: parent
+                spacing: 10
+
+                Item { // Spacer
+                    Layout.fillWidth: true
+                }
+
+                Text {
+                    text: "Galerie d'images"
+                    font.pixelSize: 18
+                    font.bold: true
+                    Layout.alignment: Qt.AlignCenter
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Button {
+                    text: "Importer"
+                    Layout.alignment: Qt.AlignRight
+                    Layout.rightMargin: 10
+
+                    onClicked: {
+                        if (!importInProgress) {
+                            importerImages();
+                        }
+                    }
+                    enabled: !importInProgress
+                    BusyIndicator {
+                        anchors.centerIn: parent
+                        running: importInProgress
+                        visible: importInProgress
+                        width: parent.height * 0.8
+                        height: width
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            width: parent.width
+            height: importInProgress ? 30 : 0
+            visible: importInProgress
+            color: "#f0f0f0"
+
+            Text {
+                anchors.centerIn: parent
+                text: statusMessage
+                font.italic: true
+            }
         }
         Text {
             width: parent.width
@@ -71,7 +231,7 @@ Item {
         GridView {
             id: imageGrid
             width: parent.width
-            height: parent.height - 40 // Hauteur moins le titre
+            height: parent.height - 50 // Hauteur ajustée pour l'en-tête
             cellWidth: width / 2      // 2 images par ligne
             cellHeight: 180
             clip: true
@@ -98,7 +258,7 @@ Item {
                         color: "#f0f0f0"
                         Image {
                             anchors.fill: parent
-                            source: "file://" + model.chemin
+                            source: "file:///var/www/html" + model.chemin
                             fillMode: Image.PreserveAspectFit
                             asynchronous: true
                             BusyIndicator {
@@ -113,13 +273,40 @@ Item {
                                 color: "red"
                             }
                         }
+                        Rectangle {
+                            id: deleteButton
+                            visible: isAdmin
+                            width: 30
+                            height: 30
+                            radius: 15
+                            color: "#80000000"
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            anchors.margins: 5
 
-                        // Clic pour agrandir
+                            Text {
+                                anchors.centerIn: parent
+                                text: "✕"
+                                color: "white"
+                                font.pixelSize: 16
+                                font.bold: true
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    confirmDeletePopup.imageId = model.id;
+                                    confirmDeletePopup.imagePath = model.chemin;
+                                    confirmDeletePopup.open();
+                                }
+                            }
+                        }
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                popupImage.imageSource = model.chemin;
+                                popupImage.imageSource ="/var/www/html"+ model.chemin;
                                 popupImage.imageDate = model.date;
+                                popupImage.imageId = model.id;
                                 popupImage.open();
                             }
                         }
@@ -139,7 +326,6 @@ Item {
         }
     }
 
-    // Popup pour l'image agrandie
     Popup {
         id: popupImage
         width: parent.width * 0.9
@@ -152,26 +338,22 @@ Item {
         x: (parent.width - width) / 2
         y: (parent.height - height) / 2
 
-        // Propriétés
         property string imageSource: ""
         property string imageDate: ""
+        property int imageId: -1
 
-        // Arrière-plan
         background: Rectangle {
             color: "black"
             opacity: 0.9
             radius: 5
         }
 
-        // Contenu
         contentItem: Item {
-            // Image
             Image {
                 anchors.fill: parent
                 source: "file://" + popupImage.imageSource
                 fillMode: Image.PreserveAspectFit
 
-                // Date
                 Rectangle {
                     anchors.bottom: parent.bottom
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -189,8 +371,6 @@ Item {
                     }
                 }
             }
-
-            // Bouton fermer
             Rectangle {
                 anchors.right: parent.right
                 anchors.top: parent.top
@@ -210,6 +390,155 @@ Item {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: popupImage.close()
+                }
+            }
+            Rectangle {
+                visible: isAdmin
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.margins: 10
+                width: 30
+                height: 30
+                radius: 15
+                color: "#80FF0000"  // Rouge avec 50% d'opacité
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "supprimer"
+                    color: "white"
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        popupImage.close();
+                        confirmDeletePopup.imageId = popupImage.imageId;
+                        confirmDeletePopup.imagePath = popupImage.imageSource.replace("file:///var/www/html", "");
+                        confirmDeletePopup.open();
+                    }
+                }
+            }
+        }
+    }
+    Popup {
+        id: confirmDeletePopup
+        width: 300
+        height: 150
+        modal: true
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+
+        // Centre le popup
+        x: (parent.width - width) / 2
+        y: (parent.height - height) / 2
+
+        property int imageId: -1
+        property string imagePath: ""
+
+        background: Rectangle {
+            color: "white"
+            border.color: "#cccccc"
+            border.width: 1
+            radius: 5
+        }
+
+        contentItem: Item {
+            Column {
+                anchors.centerIn: parent
+                spacing: 20
+
+                Text {
+                    text: "Êtes-vous sûr de vouloir supprimer cette image ?"
+                    font.pixelSize: 14
+                    width: confirmDeletePopup.width - 40
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignHCenter
+                }
+
+                Row {
+                    spacing: 20
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    Button {
+                        text: "Annuler"
+                        width: 100
+                        onClicked: confirmDeletePopup.close()
+                    }
+
+                    Button {
+                        text: "Supprimer"
+                        width: 100
+
+                        // Style pour un bouton d'action dangereux
+                        background: Rectangle {
+                            color: "#f44336"
+                            radius: 4
+                        }
+
+                        contentItem: Text {
+                            text: parent.text
+                            color: "white"
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        onClicked: {
+                            // Appeler la fonction de suppression
+                            supprimerImage(confirmDeletePopup.imageId, confirmDeletePopup.imagePath);
+                            confirmDeletePopup.close();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Popup de succès d'importation
+    Popup {
+        id: statusPopup
+        width: Math.min(parent.width * 0.8, statusText.width + 60)
+        height: statusText.height + 40
+        modal: false
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        // Position en haut et centrée
+        x: (parent.width - width) / 2
+        y: 10
+
+        background: Rectangle {
+            color: {
+                switch(statusType) {
+                    case "success": return "#e8f5e9";  // Vert clair
+                    case "warning": return "#fff8e1";  // Jaune clair
+                    case "error": return "#ffebee";    // Rouge clair
+                    default: return "#e3f2fd";         // Bleu clair (info)
+                }
+            }
+            border.color: {
+                switch(statusType) {
+                    case "success": return "#4caf50";  // Vert
+                    case "warning": return "#ff9800";  // Orange
+                    case "error": return "#f44336";    // Rouge
+                    default: return "#2196f3";         // Bleu (info)
+                }
+            }
+            border.width: 1
+            radius: 5
+        }
+
+        contentItem: Item {
+            Text {
+                id: statusText
+                anchors.centerIn: parent
+                text: statusMessage
+                font.pixelSize: 14
+                color: {
+                    switch(statusType) {
+                        case "success": return "#2e7d32";  // Vert foncé
+                        case "warning": return "#e65100";  // Orange foncé
+                        case "error": return "#b71c1c";    // Rouge foncé
+                        default: return "#0d47a1";         // Bleu foncé (info)
+                    }
                 }
             }
         }
