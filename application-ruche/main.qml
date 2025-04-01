@@ -11,7 +11,7 @@ Window {
     StackView{
         id:livre
         anchors.fill: parent
-        initialItem : "Page1.qml"
+        initialItem : "P_Acceuil.qml"
         property int direction: 0 // 1 = haut, -1 = bas, 2 = droite
         pushEnter: Transition {
                PropertyAnimation {

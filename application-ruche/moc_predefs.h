@@ -8,7 +8,6 @@
 #define __SFRACT_IBIT__ 0
 #define __FLT_MIN__ 1.1754943508222875e-38F
 #define __GCC_IEC_559_COMPLEX 2
-#define __cpp_aggregate_nsdmi 201304
 #define __UFRACT_MAX__ 0XFFFFP-16UR
 #define __UINT_LEAST8_TYPE__ unsigned char
 #define __DQ_FBIT__ 63
@@ -51,7 +50,6 @@
 #define __DBL_MIN_10_EXP__ (-307)
 #define __FINITE_MATH_ONLY__ 0
 #define __ARMEL__ 1
-#define __cpp_variable_templates 201304
 #define __ARM_FEATURE_UNALIGNED 1
 #define __LFRACT_IBIT__ 0
 #define __GNUC_PATCHLEVEL__ 1
@@ -172,7 +170,7 @@
 #define __INT_FAST16_TYPE__ int
 #define __LDBL_HAS_DENORM__ 1
 #define __ARM_FEATURE_LDREX 15
-#define __cplusplus 201402L
+#define __cplusplus 201103L
 #define __cpp_ref_qualifiers 200710
 #define __DEC128_MAX__ 9.999999999999999999999999999999999E6144DL
 #define __INT_LEAST32_MAX__ 0x7fffffff
@@ -245,7 +243,6 @@
 #define __ULACCUM_MIN__ 0.0ULK
 #define _STDC_PREDEF_H 1
 #define __UDA_FBIT__ 32
-#define __cpp_decltype_auto 201304
 #define __LLACCUM_EPSILON__ 0x1P-31LLK
 #define __ARM_FEATURE_FMA 1
 #define __GCC_ATOMIC_INT_LOCK_FREE 2
@@ -277,7 +274,6 @@
 #define __UDQ_FBIT__ 64
 #define __INT8_TYPE__ signed char
 #define __thumb__ 1
-#define __cpp_digit_separators 201309
 #define __ELF__ 1
 #define __ULFRACT_EPSILON__ 0x1P-32ULR
 #define __LLFRACT_FBIT__ 63
@@ -290,7 +286,6 @@
 #define __SIG_ATOMIC_MAX__ 0x7fffffff
 #define __LINARO_RELEASE__ 201902
 #define __GCC_ATOMIC_WCHAR_T_LOCK_FREE 2
-#define __cpp_sized_deallocation 201309
 #define __VFP_FP__ 1
 #define __SIZEOF_PTRDIFF_T__ 4
 #define __FLT32X_MANT_DIG__ 53
@@ -348,7 +343,6 @@
 #define __DBL_HAS_QUIET_NAN__ 1
 #define __FLT64_HAS_INFINITY__ 1
 #define __SIG_ATOMIC_MIN__ (-__SIG_ATOMIC_MAX__ - 1)
-#define __cpp_return_type_deduction 201304
 #define __INTPTR_TYPE__ int
 #define __UINT16_TYPE__ short unsigned int
 #define __WCHAR_TYPE__ unsigned int
@@ -428,7 +422,7 @@
 #define __CHAR32_TYPE__ unsigned int
 #define __FLT_MAX__ 3.4028234663852886e+38F
 #define __FP_FAST_FMA 1
-#define __cpp_constexpr 201304
+#define __cpp_constexpr 200704
 #define __USACCUM_FBIT__ 8
 #define __ARM_FEATURE_NUMERIC_MAXMIN 1
 #define __INT32_TYPE__ int
@@ -451,7 +445,6 @@
 #define __DBL_MAX_10_EXP__ 308
 #define __LDBL_DENORM_MIN__ 4.9406564584124654e-324L
 #define __INT16_C(c) c
-#define __cpp_generic_lambdas 201304
 #define __STDC__ 1
 #define __FLT32X_DIG__ 15
 #define __PTRDIFF_TYPE__ int
@@ -485,6 +478,5 @@
 #define __ULACCUM_FBIT__ 32
 #define __ARM_FEATURE_DSP 1
 #define __QQ_IBIT__ 0
-#define __cpp_init_captures 201304
 #define __ATOMIC_ACQ_REL 4
 #define __ATOMIC_RELEASE 3

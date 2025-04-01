@@ -1,8 +1,8 @@
 QT += quick virtualkeyboard
 QT += sql
 QT += mqtt
-QT += charts
-LIBS += -lbcrypt
+CONFIG += c++11 qml_debug
+
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -10,12 +10,13 @@ LIBS += -lbcrypt
 
 SOURCES += \
         MqttHandler.cpp \
-        administrateur.cpp \
         configurateurruche.cpp \
-        datamanager.cpp \
+        datamanager_auth.cpp \
+        datamanager_capteur.cpp \
+        datamanager_core.cpp \
+        datamanager_ruche.cpp \
         main.cpp \
-        ruche.cpp \
-        utilisateur.cpp
+        ruche.cpp
 
 RESOURCES += qml.qrc \
     images.qrc
@@ -30,12 +31,10 @@ QML_DESIGNER_IMPORT_PATH =
 
 HEADERS += \
     MqttHandler.h \
-    administrateur.h \
     configurateurruche.h \
     data.h \
     datamanager.h \
-    ruche.h \
-    utilisateur.h
+    ruche.h
 
 DISTFILES += \
     ../../../../../media/benjy/BT-7274/cours/projets/projet ruche/design IHM/arressai.png

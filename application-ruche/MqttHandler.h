@@ -21,7 +21,7 @@ public:
     Q_INVOKABLE QString getLastJson() const { return lastJson; }
 
 private:
-    dataManager* dbManager;
+    dataManager *dbManager;
     QMqttClient *mqttClient;
     QString lastJson;
     configurateurRuche *configurateur;
@@ -29,6 +29,9 @@ private:
 private slots:
     void onConnected();
     void onMessageReceived(const QByteArray &message, const QMqttTopicName &topic);
+
+signals:
+    void batteryUpdated(int rucheId, double batteryLevel);
 
 };
 

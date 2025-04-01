@@ -29,57 +29,132 @@ void MqttHandler::onConnected()
 
 void MqttHandler::onMessageReceived(const QByteArray &message, const QMqttTopicName &topic)
 {
-    qDebug() << "Message reçu sur le topic :" << topic.name();
+    qDebug() << "\n\n======= NOUVEAU MESSAGE MQTT =======";
+    qDebug() << "Topic:" << topic.name();
+
+    // Extraction du frm_payload directement (pour déboguer)
+    QString rawPayload;
+    QJsonDocument rawJsonDoc = QJsonDocument::fromJson(message);
+    if (!rawJsonDoc.isNull() && rawJsonDoc.isObject()) {
+        QJsonObject rawObj = rawJsonDoc.object();
+        if (rawObj.contains("uplink_message") && rawObj["uplink_message"].isObject()) {
+            QJsonObject uplink = rawObj["uplink_message"].toObject();
+            if (uplink.contains("frm_payload") && uplink["frm_payload"].isString()) {
+                rawPayload = uplink["frm_payload"].toString();
+                qDebug() << "frm_payload brut:" << rawPayload;
+            }
+        }
+    }
 
     QJsonDocument jsonDoc = QJsonDocument::fromJson(message);
-    if (!jsonDoc.isNull() && jsonDoc.isObject()) {
-        QJsonObject jsonObj = jsonDoc.object();
-        QString receivedAt = jsonObj.value("received_at").toString();
-        QJsonArray rxMetadata = jsonObj["uplink_message"].toObject()["rx_metadata"].toArray();
-
-        if (!rxMetadata.isEmpty()) {
-            float temperature=18;
-            float humidity=20;
-            float mass=10;
-            float pression=10;
-            QString imgPath="qrc:/img.png";
-
-            qDebug() << "Date de réception :" << receivedAt;
-            receivedAt = receivedAt.left(23) + "Z";
-            QDateTime receivedDateTime = QDateTime::fromString(receivedAt, Qt::ISODateWithMs);
-
-
-            QList<Ruche*> ruchesList = configurateur->getRuchesList();
-            Ruche* cibleRuche = nullptr;
-            for (Ruche* ruche : ruchesList) {
-                if (ruche->getMqttAdresse() == topic.name()) {
-                    cibleRuche = ruche;
-                    break;
-                }
-            }
-            if (!cibleRuche) {
-                qDebug() << "⚠️ Aucune ruche ne correspond à ce topic, création d'une nouvelle.";
-                cibleRuche = Ruche::createTestRuche();
-                cibleRuche->setMqttAdresse(topic.name());
-                configurateur->addRuche(cibleRuche);
-            } else {
-                qDebug() << "✅ Ruche trouvée avec MQTT Adresse : " << cibleRuche->getMqttAdresse();
-            }
-
-
-            cibleRuche->setData(temperature, humidity, mass, pression, imgPath, receivedDateTime);
-
-            // Enregistrement des données en base avec l'ID de la ruche
-            int rucheId = cibleRuche->getId();
-            dbManager->saveData(rucheId * 10 + 1, temperature, receivedDateTime);
-            dbManager->saveData(rucheId * 10 + 2, humidity, receivedDateTime);
-            dbManager->saveData(rucheId * 10 + 3, mass, receivedDateTime);
-            dbManager->saveData(rucheId * 10 + 4, pression, receivedDateTime);
-
-        } else {
-            qDebug() << "Pas de métadonnées de localisation.";
-        }
-    } else {
-        qDebug() << "Erreur lors de la conversion du message en JSON.";
+    if (jsonDoc.isNull() || !jsonDoc.isObject()) {
+        qDebug() << "Erreur JSON dans le message MQTT";
+        return;
     }
+
+    QJsonObject jsonObj = jsonDoc.object();
+    QJsonObject uplinkMsg = jsonObj["uplink_message"].toObject();
+
+    float temperature = 0.0f;
+    float humidity = 0.0f;
+    float mass = 0.0f;
+    float pressure = 0.0f;
+    bool dataValid = false;
+    double batteryLevel = 0;
+
+    QString receivedAt = jsonObj.value("received_at").toString();
+    qDebug() << "Timestamp reçu:" << receivedAt;
+    if (uplinkMsg.contains("frm_payload") && uplinkMsg["frm_payload"].isString()) {
+        QString frm_payload = uplinkMsg["frm_payload"].toString();
+        QByteArray decodedData = QByteArray::fromBase64(frm_payload.toLatin1());
+        QString decodedStr = QString::fromUtf8(decodedData);
+        qDebug() << "PAYLOAD DÉCODÉ:" << decodedData;
+        decodedStr = decodedStr.trimmed();
+        decodedStr.replace(";", ",");
+        if (decodedStr.startsWith(" ")) {
+            decodedStr = decodedStr.mid(1);
+        }
+        if (decodedStr.endsWith(",}")) {
+            decodedStr.replace(",}", "}");
+        }
+
+        QJsonParseError jsonError;
+        QJsonDocument jsonPayload = QJsonDocument::fromJson(decodedStr.toUtf8(), &jsonError);
+        if (jsonError.error != QJsonParseError::NoError) {
+            qDebug() << "ERREUR JSON:" << jsonError.errorString() << "à position" << jsonError.offset;
+        }
+        else if (jsonPayload.isObject()) {
+            QJsonObject jsonData = jsonPayload.object();
+            temperature = jsonData.contains("Temp") ? jsonData["Temp"].toDouble() : 0.0f;
+            humidity = jsonData.contains("Hum") ? jsonData["Hum"].toDouble() : 0.0f;
+            mass = jsonData.contains("Masse") ? jsonData["Masse"].toDouble() : 0.0f;
+            pressure = jsonData.contains("Pres") ? jsonData["Pres"].toDouble() : 0.0f;
+            batteryLevel = jsonData["Bat"].toDouble();
+            if (temperature == 0 && humidity == 0 && mass == 0 && pressure == 0) {
+                qDebug() << "ALERTE: Toutes les valeurs sont à zéro - valeurs forcées pour test";
+                temperature = 23.0f;
+                humidity = 35.0f;
+                mass = 49.0f;
+                pressure = 8.0f;
+                batteryLevel =100;
+            }
+
+            dataValid = true;
+        }
+    }
+    if (!dataValid) {
+        qDebug() << "AUCUNE DONNÉE VALIDE TROUVÉE DANS LE PAYLOAD";
+        return;
+    }
+    QString topicName = topic.name();
+    QString rucheName = "Ruche";
+    if (topicName.contains("/devices/")) {
+        QStringList parts = topicName.split("/devices/");
+        if (parts.size() > 1) {
+            rucheName = parts[1].split("/")[0];
+        }
+    }
+    receivedAt = receivedAt.left(23) + "Z";
+    QDateTime receivedDateTime = QDateTime::fromString(receivedAt, Qt::ISODateWithMs);
+    receivedDateTime = receivedDateTime.addSecs(3600); // +1h pour Paris
+
+    int rucheId = dbManager->addOrUpdateRuche(rucheName, topicName, batteryLevel);
+    if (rucheId < 0) {
+        return;
+    }
+
+    qDebug() << "ID RUCHE:" << rucheId;
+    qDebug() << "NOM RUCHE:" << rucheName;
+
+    Ruche* cibleRuche = configurateur->getRucheById(rucheId);
+    if (!cibleRuche) {
+        qDebug() << "CRÉATION D'UNE NOUVELLE RUCHE DANS LE CONFIGURATEUR";
+        cibleRuche = new Ruche();
+        cibleRuche->setId(rucheId);
+        cibleRuche->setName(rucheName);
+        cibleRuche->setMqttAdresse(topicName);
+        cibleRuche->setBatterie(batteryLevel);
+        configurateur->addRuche(cibleRuche);
+    } else {
+        cibleRuche->setBatterie(batteryLevel);
+    }
+    QString imgPath = "qrc:/img.png";
+
+    try {
+        cibleRuche->setData(temperature, humidity, mass, pressure, imgPath, receivedDateTime);
+
+        dbManager->saveData(rucheId, 1, temperature, receivedDateTime);  // Température
+        dbManager->saveData(rucheId, 2, humidity, receivedDateTime);     // Humidité
+        dbManager->saveData(rucheId, 3, mass, receivedDateTime);         // Masse
+        dbManager->saveData(rucheId, 4, pressure, receivedDateTime);     // Pression
+
+        qDebug() << "DONNÉES ENREGISTRÉES EN DB - RUCHE:" << rucheId;
+
+    } catch (const std::exception& e) {
+        qDebug() << "EXCEPTION PENDANT SETDATA:" << e.what();
+    }
+
+    // Mise à jour de la batterie
+    emit batteryUpdated(rucheId, batteryLevel);
+    qDebug() << "======= FIN DU TRAITEMENT =======\n";
 }

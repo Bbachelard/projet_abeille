@@ -2,7 +2,6 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
-#include "administrateur.h"
 #include "datamanager.h"
 #include "MqttHandler.h"
 #include "configurateurruche.h"
@@ -16,24 +15,28 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
     QGuiApplication app(argc, argv);
-
     QQmlApplicationEngine engine;
-
-    Administrateur admin;
     dataManager dManager;
     configurateurRuche configurateur;
-    MqttHandler mqttHandler(&configurateur,&dManager);
+    dManager.connectDB();
+    MqttHandler mqttHandler(&configurateur, &dManager);
+
+    QVariantList ruchesList = dManager.getRuchesList();
+    for (int i = 0; i < ruchesList.size(); ++i) {
+        QVariantMap rucheData = ruchesList[i].toMap();
+
+        Ruche* ruche = new Ruche();
+        ruche->setId(rucheData["id_ruche"].toInt());
+        ruche->setName(rucheData["name"].toString());
+        ruche->setMqttAdresse(rucheData["adress"].toString());
+
+        configurateur.addRuche(ruche);
+    }
 
     qmlRegisterType<Ruche>("com.example.ruche", 1, 0, "Ruche");
     qmlRegisterSingletonInstance("com.example.ruche", 1, 0, "RucheManager", &configurateur);
-
-
-    engine.rootContext()->setContextProperty("admin", &admin);
     engine.rootContext()->setContextProperty("dManager", &dManager);
     mqttHandler.connectToBroker();
-    dManager.connectDB();
-
-
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(

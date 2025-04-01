@@ -9,25 +9,26 @@
 class configurateurRuche : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QQmlListProperty<Ruche> ruches READ getRuchesQml NOTIFY ruchesChanged)
+    Q_PROPERTY(QVariantList ruches READ getRuchesQML NOTIFY ruchesChanged)
 
 public:
     explicit configurateurRuche(QObject *parent = nullptr);
-    QQmlListProperty<Ruche> getRuchesQml();
+    ~configurateurRuche();
 
-    Q_INVOKABLE void addRuche(Ruche* ruche);
-    QList<Ruche*> getRuchesList() const;
-    Q_INVOKABLE Ruche* createRuche(const QString &mqttAdresse);
+    QVariantList getRuchesQML();
+    QList<Ruche*> getRuchesList() const { return m_ruches; }
 
-private:
-    QList<Ruche*> ruchesList;
-    static void appendRuche(QQmlListProperty<Ruche> *list, Ruche *ruche);
-    static int countRuche(QQmlListProperty<Ruche> *list);
-    static Ruche* atRuche(QQmlListProperty<Ruche> *list, int index);
-    static void clearRuche(QQmlListProperty<Ruche> *list);
+    void addRuche(Ruche* ruche);
+    void removeRuche(int rucheId);
+    Ruche* getRucheById(int id);
+
+    Q_INVOKABLE Ruche* createRuche(const QString& mqttAdresse);
 
 signals:
     void ruchesChanged();
+
+private:
+    QList<Ruche*> m_ruches;
 };
 
 #endif // CONFIGURATEURRUCHE_H
