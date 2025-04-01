@@ -25,6 +25,10 @@ Item {
     signal capteurDeletedRequest(int capteurId)
 
     signal capteurAddRequest()
+    StatusPopup {
+        id: statusMessage
+    }
+
     DataManager {
         id: dataManager
 
@@ -199,6 +203,7 @@ Item {
             successMessage.text = "Données actualisées";
             successMessage.visible = true;
             successTimer.restart();
+            capteurComboModel.append({"name": "Tous", "id": -1});
         }
     }
 
@@ -240,22 +245,27 @@ Item {
             ComboBox {
                 id: capteurComboBox
                 width: 200
+
+                Component.onCompleted: {
+                    capteurComboModel.append({"name": "Tous", "id": -1})
+                    showAllCapteurs = true
+                    capteurSelectionne = -1
+                    currentIndex = 0
+                }
                 model: ListModel {
                     id: capteurComboModel
                 }
                 textRole: "name"
-
                 onActivated: function(index) {
-                    var selectedId = capteurComboModel.get(index).id;
+                    var selectedId = capteurComboModel.get(index).id
                     if (selectedId === -1) {
-                        showAllCapteurs = true;
-                        capteurSelectionne = -1;
+                        showAllCapteurs = true
+                        capteurSelectionne = -1
                     } else {
-                        showAllCapteurs = false;
-                        capteurSelectionne = selectedId;
+                        showAllCapteurs = false
+                        capteurSelectionne = selectedId
                     }
-                    console.log("Sélection:", showAllCapteurs ? "Tous les capteurs" : ("Capteur ID " + capteurSelectionne));
-                    refreshChartData();
+                    refreshChartData()
                 }
             }
 
@@ -300,14 +310,6 @@ Item {
                     stackLayout.currentIndex = 1;
                 }
 
-                // Relayer les signaux vers le parent
-                onCapteurDeleted: function(capteurId) {
-                    capteurDeletedRequest(capteurId);
-                }
-
-                onAddCapteurRequested: function() {
-                    capteurAddRequest();
-                }
                 onShowImagesRequested: function(rucheId) {
                     stackLayout.currentIndex = 3; // Passer directement à l'onglet Images
                 }

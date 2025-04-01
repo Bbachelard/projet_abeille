@@ -8,13 +8,12 @@ Item {
     height: parent.height
 
     signal capteurSelected(int capteurId)
-    signal capteurDeleted(int capteurId)
-    signal addCapteurRequested()
     signal showImagesRequested(int rucheId)
 
     property int rucheId: -1
     property bool isViewA: false
     property var _internalCapteursData: []
+
     function updateCapteurs(newCapteursData) {
         _internalCapteursData = JSON.parse(JSON.stringify(newCapteursData));
         capteursModel.clear();
@@ -53,39 +52,11 @@ Item {
                 anchors.leftMargin: 10
                 anchors.rightMargin: 10
                 spacing: 15
-                Item {
-                    width: parent.width - addButton.width - parent.spacing
-                    height: parent.height
-                    Text {
-                        text: "Liste des capteurs"
-                        font.pixelSize: 18
-                        font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                }
-                Rectangle {
-                    id: addButton
-                    width: 30
-                    height: 30
-                    radius: width/2
-                    color: addMouseArea.pressed ? "#4CAF50" : "#66BB6A"
-                    visible: isViewA
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    Text {
-                        text: "+"
-                        font.pixelSize: 20
-                        color: "white"
-                        anchors.centerIn: parent
-                    }
-
-                    MouseArea {
-                        id: addMouseArea
-                        anchors.fill: parent
-                        onClicked: {
-                            addCapteurRequested();
-                        }
-                    }
+                Text {
+                    text: "Liste des capteurs"
+                    font.pixelSize: 18
+                    font.bold: true
+                    anchors.horizontalCenter: parent.horizontalCenter
                 }
             }
         }
@@ -129,32 +100,8 @@ Item {
                             font.pixelSize: 12
                         }
                     }
-                    Rectangle {
-                        id: deleteButton
-                        width: 30
-                        height: 30
-                        radius: width/2
-                        color: delBtnMouseArea.pressed ? "#ff6666" : "#ff9999"
-                        visible: isViewA && model.type !== "Images"
-                        Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
 
-                        Text {
-                            text: "✕"
-                            font.pixelSize: 16
-                            color: "white"
-                            anchors.centerIn: parent
-                        }
-
-                        MouseArea {
-                            id: delBtnMouseArea
-                            anchors.fill: parent
-                            onClicked: {
-                                capteurDeleted(model.id);
-                            }
-                        }
-                    }
                 }
-
                 MouseArea {
                     anchors.fill: parent
                     anchors.rightMargin: isViewA ? 50 : 0
@@ -167,9 +114,7 @@ Item {
                     }
                 }
             }
-
             ScrollBar.vertical: ScrollBar {}
-
         }
 
         Text {

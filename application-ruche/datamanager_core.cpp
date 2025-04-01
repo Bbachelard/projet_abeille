@@ -53,9 +53,6 @@ QString dataManager::executeShellCommand(const QString &command)
     QString output = QString::fromUtf8(process.readAllStandardOutput());
     QString error = QString::fromUtf8(process.readAllStandardError());
 
-    qDebug() << "Sortie standard:" << output;
-    qDebug() << "Sortie d'erreur:" << error;
-
     // Retourner le résultat
     if (process.exitCode() == 0) {
         return "Succès: " + output;

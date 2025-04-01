@@ -49,8 +49,6 @@ public:
 
 public slots:
     Q_INVOKABLE bool deleteRuche(int rucheId);
-    Q_INVOKABLE int addCapteur(int rucheId, const QString &type, const QString &localisation, const QString &description);
-    Q_INVOKABLE bool deleteCapteur(int capteurId);
 
 signals:
     void rucheActiveChanged();

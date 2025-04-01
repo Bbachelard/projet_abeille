@@ -15,5 +15,6 @@
         <file>RucheView.qml</file>
         <file>RucheList.qml</file>
         <file>ImageGallery.qml</file>
+        <file>StatusPopup.qml</file>
     </qresource>
 </RCC>

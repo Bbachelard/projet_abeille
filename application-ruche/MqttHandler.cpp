@@ -85,17 +85,17 @@ void MqttHandler::onMessageReceived(const QByteArray &message, const QMqttTopicN
         }
         else if (jsonPayload.isObject()) {
             QJsonObject jsonData = jsonPayload.object();
-            temperature = jsonData.contains("Temp") ? jsonData["Temp"].toDouble() : 0.0f;
-            humidity = jsonData.contains("Hum") ? jsonData["Hum"].toDouble() : 0.0f;
-            mass = jsonData.contains("Masse") ? jsonData["Masse"].toDouble() : 0.0f;
-            pressure = jsonData.contains("Pres") ? jsonData["Pres"].toDouble() : 0.0f;
-            batteryLevel = jsonData["Bat"].toDouble();
+            temperature = jsonData.contains("T") ? jsonData["T"].toDouble() : 0.0f;
+            humidity = jsonData.contains("H") ? jsonData["H"].toDouble() : 0.0f;
+            mass = jsonData.contains("M") ? jsonData["M"].toDouble() : 0.0f;
+            pressure = jsonData.contains("P") ? jsonData["P"].toDouble() : 0.0f;
+            batteryLevel = jsonData.contains("Bat") ? jsonData["Bat"].toDouble() : 0.0f;
             if (temperature == 0 && humidity == 0 && mass == 0 && pressure == 0) {
                 qDebug() << "ALERTE: Toutes les valeurs sont à zéro - valeurs forcées pour test";
                 temperature = 23.0f;
                 humidity = 35.0f;
                 mass = 49.0f;
-                pressure = 8.0f;
+                pressure = 1126.0f;
                 batteryLevel =100;
             }
 
@@ -147,7 +147,7 @@ void MqttHandler::onMessageReceived(const QByteArray &message, const QMqttTopicN
         dbManager->saveData(rucheId, 2, humidity, receivedDateTime);     // Humidité
         dbManager->saveData(rucheId, 3, mass, receivedDateTime);         // Masse
         dbManager->saveData(rucheId, 4, pressure, receivedDateTime);     // Pression
-
+        dbManager->updateRucheBatterie(rucheId, batteryLevel);
         qDebug() << "DONNÉES ENREGISTRÉES EN DB - RUCHE:" << rucheId;
 
     } catch (const std::exception& e) {
