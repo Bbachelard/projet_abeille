@@ -43,6 +43,9 @@ Item {
     Column {
         anchors.fill: parent
         spacing: 10
+
+
+
         Item {
                width: parent.width
                height: 40
@@ -100,7 +103,29 @@ Item {
                             font.pixelSize: 12
                         }
                     }
+                    Button {
+                        visible: isViewA && model.type === "Images" // Afficher uniquement pour les images
+                        text: "..."
+                        width: 40
+                        height: 40
 
+                        background: Rectangle {
+                            color: parent.pressed ? "#4CAF50" : "#6200EE"
+                            radius: 5
+                        }
+
+                        contentItem: Text {
+                            text: parent.text
+                            color: "white"
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            font.bold: true
+                        }
+
+                        onClicked: {
+                            imagesPopup.open()
+                        }
+                    }
                 }
                 MouseArea {
                     anchors.fill: parent
@@ -131,4 +156,120 @@ Item {
             visible: capteursModel.count === 0
         }
     }
+
+
+
+
+    Popup {
+        id: imagesPopup
+        width: 400
+        height: 300
+        modal: true
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        anchors.centerIn: Overlay.overlay
+
+        background: Rectangle {
+            radius: 10
+            color: "white"
+            border.color: "#cccccc"
+            border.width: 1
+        }
+
+        contentItem: Column {
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 15
+
+            Text {
+                width: parent.width
+                text: "Ruche " + rucheName
+                font.pixelSize: 18
+                font.bold: true
+                horizontalAlignment: Text.AlignHCenter
+            }
+
+            Item {
+                width: parent.width
+                height: 20
+            }
+
+            ComboBox {
+                id: resolutionComboBox
+                width: parent.width
+                model: ["320x240", "640x480", "800x600"]
+
+                background: Rectangle {
+                    implicitWidth: 120
+                    implicitHeight: 40
+                    border.color: resolutionComboBox.pressed ? "#2196F3" : "#3F51B5"
+                    border.width: 1
+                    radius: 5
+                }
+
+                onCurrentTextChanged: {
+                    if (resolutionComboBox.currentText) {
+                        console.log("Résolution sélectionnée: " + resolutionComboBox.currentText)
+                    }
+                }
+            }
+
+            Button {
+                width: parent.width
+                height: 50
+                text: "Définir résolution"
+
+                background: Rectangle {
+                    color: parent.pressed ? "#2196F3" : "#3F51B5"
+                    radius: 5
+                }
+
+                contentItem: Text {
+                    text: parent.text
+                    color: "white"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                onClicked: {
+                    var resolution = resolutionComboBox.currentText
+                    if (resolution) {
+                        var message = "resolution:" + resolution
+                        mqttHandler.sendMqttMessage(rucheName, message)
+                        imagesPopup.close()
+                        statusMessage.show("Configuration de résolution " + resolution + " envoyée", "info")
+                    }
+                }
+            }
+
+            Item {
+                width: parent.width
+                height: 20
+                Layout.fillHeight: true
+            }
+
+            Button {
+                width: parent.width
+                height: 50
+                text: "Fermer"
+
+                background: Rectangle {
+                    color: parent.pressed ? "#BDBDBD" : "#9E9E9E"
+                    radius: 5
+                }
+
+                contentItem: Text {
+                    text: parent.text
+                    color: "white"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                onClicked: {
+                    imagesPopup.close()
+                }
+            }
+        }
+    }
 }
+

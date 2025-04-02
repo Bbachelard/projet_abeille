@@ -79,6 +79,27 @@ void dataManager::adduser(QString id, QString pw, int grade)
     }
 }
 
+bool dataManager::verifUser( QString &user)
+{
+    if (!db.isOpen()) {
+        connectDB();
+    }
+    QSqlQuery query;
+    query.prepare("SELECT COUNT(*) FROM compte WHERE identifiant = :id");
+    query.bindValue(":id", user);
+
+    if (!query.exec()) {
+        qDebug() << "Erreur lors de la vérification de l'utilisateur:" << query.lastError().text();
+        return false;
+    }
+    // Si un résultat est trouvé, l'utilisateur existe
+    if (query.next() && query.value(0).toInt() > 0) {
+        return true;
+    }
+    return false;
+}
+
+
 void dataManager::modifpw(QString id, QString pw)
 {
     if (!db.isOpen()) {

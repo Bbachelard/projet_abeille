@@ -19,6 +19,9 @@ Item {
     property real zoomFactor: 1.0
     property real panOffset: 0
 
+    // Propriété pour contrôler l'affichage initial des 10 dernières valeurs
+    property bool initialPositionSet: false
+
     // Définir les graduations en fonction du type de capteur
     property var yAxisLabels: []
     property real minValue: 0
@@ -50,14 +53,36 @@ Item {
             yAxisLabels = [0, 20, 40, 60, 80, 100];
         } else if (capteurType.toLowerCase().includes("pression")) {
             minValue = 900;
-            maxValue = 1100;
-            yAxisLabels = [900, 950, 1000, 1050, 1100];
+            maxValue = 1300;
+            yAxisLabels = [900, 1000, 1100,1200,1300];
         } else {
             // Valeurs par défaut ou calculées à partir des données
             calculateMinMaxFromData();
         }
 
+        // Positionner initialement sur les 10 dernières valeurs
+        setInitialPosition();
+
         chartCanvas.requestPaint();
+    }
+
+    // Fonction pour positionner le graphique sur les 10 dernières valeurs
+    function setInitialPosition() {
+        if (chartData && chartData.length > 0 && !initialPositionSet) {
+            // Calculer le nombre de valeurs à afficher initialement
+            var numValuesToShow = Math.min(10, chartData.length);
+
+            if (numValuesToShow < chartData.length) {
+                // Calculer le facteur de zoom nécessaire pour montrer seulement 10 valeurs
+                zoomFactor = chartData.length / numValuesToShow;
+
+                // Définir le décalage pour montrer les 10 dernières valeurs
+                panOffset = zoomFactor - 1;
+
+                // Marquer que la position initiale a été définie
+                initialPositionSet = true;
+            }
+        }
     }
 
     // Calculer min/max à partir des données
@@ -85,6 +110,14 @@ Item {
         var step = (maxValue - minValue) / 5;
         for (var j = 0; j <= 5; j++) {
             yAxisLabels.push(Math.round((minValue + j * step) * 10) / 10);
+        }
+    }
+
+    // Observer les changements de données pour positionner correctement lors du chargement
+    onChartDataChanged: {
+        if (chartData && chartData.length > 0) {
+            setInitialPosition();
+            chartCanvas.requestPaint();
         }
     }
 
@@ -158,6 +191,16 @@ Item {
                 onClicked: {
                     zoomFactor = 1.0;
                     panOffset = 0;
+                    initialPositionSet = false;
+                    chartCanvas.requestPaint();
+                }
+            }
+
+            Button {
+                text: "Dernières 10"
+                onClicked: {
+                    initialPositionSet = false;
+                    setInitialPosition();
                     chartCanvas.requestPaint();
                 }
             }

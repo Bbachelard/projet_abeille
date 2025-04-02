@@ -52,6 +52,7 @@ Item {
                 livre.push("P_AView.qml")
             }
         }
-}}
+    }
+}
 
 

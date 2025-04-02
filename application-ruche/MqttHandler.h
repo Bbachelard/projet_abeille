@@ -19,7 +19,8 @@ public:
     explicit MqttHandler(configurateurRuche *configurateur, dataManager *dManager, QObject *parent = nullptr);
     Q_INVOKABLE void connectToBroker();
     Q_INVOKABLE QString getLastJson() const { return lastJson; }
-
+    Q_INVOKABLE void sendMqttMessage(const QString &deviceId, const QByteArray &payload,
+                                     const QString &port = "1", bool confirmed = false);
 private:
     dataManager *dbManager;
     QMqttClient *mqttClient;
@@ -32,6 +33,7 @@ private slots:
 
 signals:
     void batteryUpdated(int rucheId, double batteryLevel);
+    void messageSent(bool success, const QString &deviceId, const QString &message);
 
 };
 

@@ -287,6 +287,12 @@ Item {
                 text: "Images"
                 onClicked: stackLayout.currentIndex = 3
             }
+
+
+
+
+
+
         }
 
         StackLayout {

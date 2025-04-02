@@ -29,13 +29,13 @@ int main(int argc, char *argv[])
         ruche->setId(rucheData["id_ruche"].toInt());
         ruche->setName(rucheData["name"].toString());
         ruche->setMqttAdresse(rucheData["adress"].toString());
-
         configurateur.addRuche(ruche);
     }
 
     qmlRegisterType<Ruche>("com.example.ruche", 1, 0, "Ruche");
     qmlRegisterSingletonInstance("com.example.ruche", 1, 0, "RucheManager", &configurateur);
     engine.rootContext()->setContextProperty("dManager", &dManager);
+    engine.rootContext()->setContextProperty("mqttHandler", &mqttHandler);
     mqttHandler.connectToBroker();
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));

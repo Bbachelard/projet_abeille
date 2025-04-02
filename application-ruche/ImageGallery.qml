@@ -156,11 +156,9 @@ Item {
             RowLayout {
                 anchors.fill: parent
                 spacing: 10
-
-                Item { // Spacer
+                Item {
                     Layout.fillWidth: true
                 }
-
                 Text {
                     text: "Galerie d'images"
                     font.pixelSize: 18
