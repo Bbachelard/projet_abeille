@@ -63,7 +63,8 @@ Item {
                         id: create_user
                         width: 450
                         height: 200
-                        modal: true
+                        dim: false
+                        modal: false
                         focus: true
                         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
                         z: 100
@@ -73,6 +74,7 @@ Item {
                             anchors.centerIn: parent
                             width: parent.width
                             spacing: 10
+                             z: 200
                             TextField {
                                 id: usernameField
                                 width: 400
@@ -94,22 +96,54 @@ Item {
                                 font.pixelSize: 18
                                 echoMode: TextInput.Password
                             }
-                            TextField {
+                            ComboBox {
                                 id: gradeField
                                 width: 400
-                                placeholderText: "grade (1=user;2=admin;3=superadmin)"
-                                onPressed: {
-                                    Qt.inputMethod.show()
-                                }
+                                model: ["1 - User", "2 - Admin", "3 - Superadmin"]
                                 font.pixelSize: 18
-                                echoMode: TextInput.grade
+
+                                // Personnalisation du popup existant
+                                popup.z: 999 // Valeur élevée pour être au premier plan
+
+                                // Alternative: définir plus de propriétés du popup
+                                popup.font.pixelSize: 18
+                                popup.width: width
                             }
+
                             Button {
                                 text: "Ajouter Utilisateur"
                                 anchors.bottom: parent
                                 width: 200
                                 height: 40
-                                onClicked: create_user.open()}
+                                onClicked: if(usernameField.text === "" || passwordField.text === "" || gradeField.currentIndex === -1){
+                                               console.log("Veuillez remplir le champ.");
+                                               errorMessage.text = "Veuillez remplir le champ";
+                                               errorMessage.visible = true;
+                                               hideError.start()}
+                                            else{
+                                               dManager.adduser(usernameField.text, passwordField.text, gradefield.currentindex)
+                                            }}
+                        }
+                        Rectangle {
+                            width: page.width
+                            height: 50
+                            color: "transparent"
+
+                            Text {
+                                id: errorMessage
+                                text: ""
+                                color: "yellow"
+                                font.pixelSize: 18
+                                font.bold: true
+                                y:+80
+                                x:+450
+                                visible: false
+                            }
+                        }
+                        Timer {
+                            id: hideError
+                            interval: 3000
+                            onTriggered: errorMessage.visible = false
                         }
         }
                 Popup {
@@ -141,13 +175,17 @@ Item {
                                 anchors.bottom: parent
                                 width: 200
                                 height: 40
-                                onClicked: if(dManager.verifuser(username_mmdp)){
-                                           modif_mdp_page.open()}
-                                           else{console.log("Veuillez remplir le champ.");
+                                onClicked: if(username_mmdp.text === ""){
+                                               console.log("Veuillez remplir le champ.");
                                                errorMessage.text = "Veuillez remplir le champ";
                                                errorMessage.visible = true;
-                                               hideError.start();
-                                           }
+                                               hideError.start()}
+                                            else{
+                                               if(dManager.verifUser(username_mmdp))
+                                                {
+                                                   modif_mdp_page.open()
+                                                }
+                                            }
             }
         }
                 Popup {
@@ -221,7 +259,6 @@ Item {
                                 font.pixelSize: 18
                                 echoMode: TextInput.Password
                             }
-
                             Button {
                                 text: "Modifier mot de passe"
                                 anchors.horizontalCenter:
