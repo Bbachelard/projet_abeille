@@ -25,9 +25,10 @@ include 'connexion.php';
             <a href="temperature.php" class="graph-button">Température</a>
             <a href="humidite.php" class="graph-button">Humidité</a>
             <a href="masse.php" class="graph-button">Masse</a>
+            <a href="pression.php" class="graph-button">Pression</a>
         </div>
     </main>
-    <script src="/ruche_connectee/theme.js"></script>
+    <script src="/theme.js"></script>
     <script src="notifications_animation.js"></script>
     <script src="script.js" defer></script>
 

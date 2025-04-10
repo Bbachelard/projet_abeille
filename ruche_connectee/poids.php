@@ -37,6 +37,6 @@ include 'connexion.php';
             <?php endwhile; ?>
         </table>
     </main>
-    <script src="/ruche_connectee/theme.js"></script>
+    <script src="/theme.js"></script>
 </body>
 </html>

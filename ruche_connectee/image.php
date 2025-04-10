@@ -1,6 +1,14 @@
 <?php
 include 'verif_session.php';
 include 'connexion.php';
+
+// Vérification de la ruche sélectionnée
+if (!isset($_SESSION["id_ruche"])) {
+    header("Location: login.php");
+    exit();
+}
+
+$id_ruche = $_SESSION["id_ruche"];
 ?>
 
 <!DOCTYPE html>
@@ -20,24 +28,40 @@ include 'connexion.php';
     <?php include 'menu.php'; ?>
 
     <main>
-        <h2>Galerie d'Images</h2>
+        <h2>Galerie d'Images de la Ruche</h2>
         <div class="gallery">
             <?php
-            $query = "SELECT chemin_fichier, date_capture FROM images ORDER BY date_capture DESC";
-            $stmt = $conn->query($query);
+            // Requête pour récupérer les images associées à la ruche de l'utilisateur
+            $query = "SELECT chemin_fichier, date_capture 
+                      FROM images 
+                      WHERE id_ruche = :id_ruche 
+                      ORDER BY date_capture DESC";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(":id_ruche", $id_ruche, PDO::PARAM_INT);
+            $stmt->execute();
+            $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)):
+            if (!empty($images)) {
+                foreach ($images as $row):
+                    // Nettoyer le chemin de l'image
+                    $imagePath = str_replace('/ruche_connectee/', '/', $row['chemin_fichier']);
             ?>
-                <div class="image">
-                    <img src="<?= htmlspecialchars($row['chemin_fichier']) ?>" alt="Image de la ruche : ">
-                    <p>Date : <?= htmlspecialchars($row['date_capture']) ?></p>
-                </div>
-            <?php endwhile; ?>
+                    <div class="image">
+                        <a href="<?= htmlspecialchars($imagePath) ?>" target="_blank">
+                            <img src="<?= htmlspecialchars($imagePath) ?>" alt="Image de la ruche">
+                        </a>
+                        <p>Date : <?= htmlspecialchars($row['date_capture']) ?></p>
+                    </div>
+            <?php
+                endforeach;
+            } else {
+                echo "<p>Aucune image disponible pour cette ruche.</p>";
+            }
+            ?>
         </div>
     </main>
 
-    <script src="/ruche_connectee/theme.js"></script>
-    <script src="notifications_animation.js"></script>
+    <script src="/theme.js"></script>
     <script src="script.js" defer></script>
 </body>
 </html>

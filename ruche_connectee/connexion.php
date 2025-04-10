@@ -1,5 +1,5 @@
 <?php include 'verif_session.php';
-$database = "/var/www/html/ruche_connectee/ruche_connectee.db"; 
+$database = "/home/pi/nom_base.sqlite"; 
 
 try {
     $conn = new PDO("sqlite:$database");

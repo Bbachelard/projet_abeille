@@ -98,11 +98,28 @@ tr:hover td {
 /* ========================= */
 /* 🌟 Mode Sombre 🌙 */
 /* ========================= */
+/* 🌙 Mode sombre */
 .dark-mode {
-    background-color: #111;
-    color: white;
+    background-color: #121212;
+    color: #E0E0E0;
 }
 
+.dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode p {
+    color: #FFFFFF;
+}
+
+/* Ajustement des blocs */
+.dark-mode .intro, 
+.dark-mode .ruche-info, 
+.dark-mode .fonctionnalites, 
+.dark-mode .cta, 
+.dark-mode .feature {
+    background: #1E1E1E;
+    color: #E0E0E0;
+    border: 1px solid #444; /* Ajout de contraste */
+}
+
+/* Ajustement des tableaux */
 .dark-mode table {
     background: #222;
     color: white;
@@ -118,20 +135,32 @@ tr:hover td {
     color: #FFD700;
 }
 
-.dark-mode tr:hover td {
-    background-color: rgba(214, 146, 30, 0.4);
+/* Correction des liens */
+.dark-mode a {
+    color: #FFD700;
 }
 
-.dark-mode nav {
-    background-color: #222;
+.dark-mode a:hover {
+    color: #FFA500;
 }
 
-.dark-mode nav ul li a {
-    color: #f0c674;
+/* Correction des boutons */
+.dark-mode .btn, 
+.dark-mode .graph-button, 
+.dark-mode .filter-btn {
+    background: #D6921E;
+    color: black;
 }
 
+.dark-mode .btn:hover, 
+.dark-mode .graph-button:hover, 
+.dark-mode .filter-btn:hover {
+    background: #E6A32E;
+}
+
+/* Correction des hexagones */
 .dark-mode .hexagon {
-    background-color: rgba(214, 146, 30, 0.8);
+    background-color: rgba(214, 146, 30, 0.9);
 }
 
 /* ========================= */
@@ -166,6 +195,9 @@ tr:hover td {
     text-align: center;
     margin-top: 30px;
 }
+
+
+
 
 .btn {
     display: inline-block;
@@ -205,9 +237,9 @@ tr:hover td {
 
 /* 🌟 Style des Graphiques */
 .chart-container {
-    width: 80%;
+    width: 100%;
     margin: auto;
-    padding: 20px;
+    padding: 30px;
     background: white;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -240,4 +272,151 @@ canvas {
 
 .filter-btn:hover {
     background-color: #D6921E;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    padding: 20px;
+    justify-items: center;
+}
+
+.image {
+    position: relative;
+    text-align: center;
+    background: #222;
+    padding: 10px;
+    border-radius: 10px;
+    transition: transform 0.3s ease-in-out;
+}
+
+.image:hover {
+    transform: scale(1.05);
+}
+
+.image img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+.image img:hover {
+    opacity: 0.8;
+}
+
+.image p {
+    color: #ddd;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.view-link {
+    color: #6fa3ef;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.view-link:hover {
+    text-decoration: underline;
+}
+
+/* Lightbox effet */
+.lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.lightbox img {
+    max-width: 80%;
+    max-height: 80%;
+    border-radius: 10px;
+}
+
+.lightbox:target {
+    display: flex;
+}
+
+/* Mode clair (par défaut) */
+main {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+    text-align: center;
+}
+
+h1 {
+    color: #333;
+}
+
+/* Style de base pour les blocs */
+.intro, .ruche-info, .fonctionnalites, .cta {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    transition: background 0.3s, color 0.3s;
+}
+
+/* Grille des fonctionnalités */
+.grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+}
+
+.feature {
+    width: 45%;
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s, color 0.3s;
+}
+
+/* Boutons */
+.btn {
+    display: inline-block;
+    padding: 10px 15px;
+    margin: 10px;
+    background: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.btn:hover {
+    background: #45a049;
+}
+
+.separator td {
+    background-color: #222; /* Même couleur que l'arrière-plan du tableau */
+    border-top: 2px solid #D6921E; /* Fine ligne miel */
+    height: 0;
+    padding: 0;
+    margin: 0;
+}
+
+.alerte-moderate {
+    background-color: #ffa500 !important; /* Orange */
+    color: white;
+    font-weight: bold;
+}
+
+.alerte-critique {
+    background-color: #ff4d4d !important; /* Rouge */
+    color: white;
+    font-weight: bold;
 }

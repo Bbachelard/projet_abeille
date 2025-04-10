@@ -7,7 +7,7 @@ include 'connexion.php';
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Température - Ruche Connectée</title>
+    <title>Pression - Ruche Connectée</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -21,56 +21,48 @@ include 'connexion.php';
     <?php include 'menu.php'; ?>
 
     <main>
-        <h2>Graphique de la Température</h2>
+        <h2>Graphique de la Pression</h2>
 
         <div class="button-container">
+            <a href="temperature.php" class="graph-button">Température</a>
             <a href="humidite.php" class="graph-button">Humidité</a>
             <a href="masse.php" class="graph-button">Masse</a>
-            <a href="pression.php" class="graph-button">Pression</a>
         </div>
 
         <button class="filter-btn" onclick="loadChart('week')">📅 Dernière semaine</button>
         <button class="filter-btn" onclick="loadChart('month')">📅 Dernier mois</button>
         <button class="filter-btn" onclick="loadChart('all')">📅 Tout</button>
 
-        <canvas id="temperatureChart"></canvas>
-        <p id="error-message" style="color: red; display: none;">Aucune donnée disponible.</p>
+        <canvas id="pressionChart"></canvas>
     </main>
 
     <script>
-        // Fonction pour charger le graphique selon la période sélectionnée
         function loadChart(periode) {
-            fetch(`get_data.php?capteur=temperature&periode=${periode}`)
+            fetch(`get_data.php?capteur=pression&periode=${periode}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (!data.dates || data.dates.length === 0) {
-                        document.getElementById("error-message").style.display = "block";
+                    if (!data.dates.length) {
                         console.error("Aucune donnée reçue !");
                         return;
                     }
-
-                    document.getElementById("error-message").style.display = "none";
-
-                    new Chart(document.getElementById("temperatureChart"), {
+                    new Chart(document.getElementById("pressionChart"), {
                         type: 'line',
                         data: {
                             labels: data.dates,
                             datasets: [{
-                                label: "Température (°C)",
+                                label: "Pression (hPa)",
                                 data: data.valeurs,
-                                borderColor: "red",
-                                backgroundColor: "rgba(255, 0, 0, 0.2)",
+                                borderColor: "purple",
+                                backgroundColor: "rgba(128, 0, 128, 0.2)",
                                 borderWidth: 2,
                                 tension: 0.4,
                                 fill: true
                             }]
                         }
                     });
-                })
-                .catch(error => console.error("Erreur lors du fetch :", error));
+                }).catch(error => console.error("Erreur lors du fetch :", error));
         }
 
-        // Charger les données par défaut (toutes les données) lorsque la page se charge
         document.addEventListener("DOMContentLoaded", function() {
             loadChart('all');
         });
@@ -79,5 +71,6 @@ include 'connexion.php';
     <script src="/theme.js"></script>
     <script src="notifications_animation.js"></script>
     <script src="script.js" defer></script>
+
 </body>
 </html>
