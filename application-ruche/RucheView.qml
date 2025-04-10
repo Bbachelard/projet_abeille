@@ -200,7 +200,6 @@ Item {
             loadRucheBattery();
             refreshChartData();
             imageGallery.chargerImages();
-            successMessage.text = "Données actualisées";
             successMessage.visible = true;
             successTimer.restart();
             capteurComboModel.append({"name": "Tous", "id": -1});

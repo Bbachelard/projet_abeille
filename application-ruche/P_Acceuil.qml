@@ -52,6 +52,14 @@ Item {
                 livre.push("P_AView.qml")
             }
         }
+        Button{
+            text:"test"
+            width: 200
+            height: 50
+            onClicked: {
+                livre.push("P_SAView.qml")
+            }
+        }
     }
 }
 

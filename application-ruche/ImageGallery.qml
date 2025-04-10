@@ -363,9 +363,9 @@ Item {
                 anchors.left: parent.left
                 anchors.top: parent.top
                 anchors.margins: 10
-                width: 30
+                width: 50
                 height: 30
-                radius: 15
+                radius: 2
                 color: "#80FF0000"  // Rouge avec 50% d'opacité
 
                 Text {

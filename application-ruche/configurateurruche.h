@@ -21,8 +21,8 @@ public:
     void addRuche(Ruche* ruche);
     void removeRuche(int rucheId);
     Ruche* getRucheById(int id);
-
     Q_INVOKABLE Ruche* createRuche(const QString& mqttAdresse);
+    Q_INVOKABLE void updateRucheInfo(int id, const QString& name, const QString& mqttAdresse);
 
 signals:
     void ruchesChanged();

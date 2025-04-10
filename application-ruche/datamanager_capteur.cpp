@@ -92,3 +92,63 @@ QVariantList dataManager::getAllRucheData()
     }
     return allDataList;
 }
+
+
+QVariantList dataManager::getLastCapteurValue(int id_capteur, int id_ruche)
+{
+    QVariantList result;
+    if (!db.isOpen()) {
+        connectDB();
+    }
+    // D'abord, récupérer les informations sur le capteur pour obtenir l'unité de mesure
+    QSqlQuery capteurQuery;
+    capteurQuery.prepare("SELECT type, mesure FROM capteurs WHERE id_capteur = :id_capteur");
+    capteurQuery.bindValue(":id_capteur", id_capteur);
+    QString type;
+    QString uniteMesure;
+    if (capteurQuery.exec() && capteurQuery.next()) {
+        type = capteurQuery.value("type").toString();
+        uniteMesure = capteurQuery.value("mesure").toString();
+    } else {
+        qDebug() << "Erreur lors de la récupération des informations du capteur:" << capteurQuery.lastError().text();
+        return result;
+    }
+    // Ensuite, récupérer la dernière valeur mesurée
+    QSqlQuery query;
+    query.prepare("SELECT valeur, date_mesure FROM donnees WHERE id_capteur = :id_capteur AND id_ruche = :id_ruche ORDER BY date_mesure DESC LIMIT 1");
+    query.bindValue(":id_capteur", id_capteur);
+    query.bindValue(":id_ruche", id_ruche);
+
+    if (query.exec() && query.next()) {
+        float valeur = query.value("valeur").toFloat();
+        QString dateMesure = query.value("date_mesure").toString();
+        QDateTime dateTime = QDateTime::fromString(dateMesure, "yyyy-MM-dd HH:mm:ss");
+        QString dateFormatee;
+        if (dateTime.isValid()) {
+            dateFormatee = dateTime.toString("dd/MM/yyyy HH:mm");
+        } else {
+            dateFormatee = dateMesure;
+        }
+
+        // Créer un QVariantMap pour chaque élément de résultat et l'ajouter à la liste
+        QVariantMap item;
+        item["success"] = true;
+        item["valeur"] = valeur;
+        item["date_mesure"] = dateMesure;
+        item["type"] = type;
+        item["unite_mesure"] = uniteMesure;
+        item["date_formatee"] = dateFormatee;
+
+        result.append(item);
+    } else {
+        qDebug() << "Aucune donnée trouvée pour ce capteur:" << query.lastError().text();
+        // Ajouter un élément indiquant l'échec
+        QVariantMap errorItem;
+        errorItem["success"] = false;
+        result.append(errorItem);
+    }
+
+    return result;
+}
+
+

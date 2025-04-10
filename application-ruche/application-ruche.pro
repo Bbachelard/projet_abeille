@@ -15,6 +15,7 @@ SOURCES += \
         datamanager_capteur.cpp \
         datamanager_core.cpp \
         datamanager_ruche.cpp \
+        datamanger_alerte.cpp \
         main.cpp \
         ruche.cpp
 

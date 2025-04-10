@@ -28,89 +28,96 @@ Item {
     }
 
 
-Column {
-    anchors.centerIn: parent
-    anchors.horizontalCenter:
-    parent.horizontalCenter
-    anchors.rightMargin: 20
-    width: parent.width
-    spacing: 10
+                    Column {
+                        anchors.centerIn: parent
+                        anchors.horizontalCenter:
+                        parent.horizontalCenter
+                        anchors.rightMargin: 20
+                        width: parent.width
+                        spacing: 10
 
 
-    Button {
-        text: "Ajouter Utilisateur"
+                        Button {
+                            text: "Ajouter Utilisateur"
 
-        x: +300
-        width: 200
-        height: 40
-        onClicked: create_user.open()}
+                            x: +300
+                            width: 200
+                            height: 40
+                            onClicked: create_user.open()}
 
-    Button {
-        text: "Modifier MDP Utilisateur"
-        x: +250
-        width: 200
-        height: 40
-        onClicked: modif_mdp.open()}
-    Button {
-        text: "Modifier grade"
-        x:+300
-        width: 200
-        height: 40
-        onClicked: modif_grade.open()
-    }
-}
-Popup {
-    id: create_user
-    width: 450
-    height: 200
-    modal: true
-    focus: true
-    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-    z: 100
-    anchors.centerIn: page.top
+                        Button {
+                            text: "Modifier MDP Utilisateur"
+                            x: +250
+                            width: 200
+                            height: 40
+                            onClicked: modif_mdp.open()}
+                        Button {
+                            text: "Modifier grade"
+                            x:+300
+                            width: 200
+                            height: 40
+                            onClicked: modif_grade.open()
+                        }
+                    }
+                Popup {
+                        id: create_user
+                        width: 450
+                        height: 200
+                        modal: true
+                        focus: true
+                        closePolicy: Popup.CloseOnPressOutside
+                        parent: Overlay.overlay
+                        z: 2000
+                        anchors.centerIn: page.top
 
-    Column{
-        anchors.centerIn: parent
-        width: parent.width
-        spacing: 10
-        TextField {
-            id: usernameField
-            width: 400
-            placeholderText: "Nom d'utilisateur"
-            font.pixelSize: 18
-            focus: true
-            onPressed: {
-                Qt.inputMethod.show()
-            }
-            echoMode: TextInput.id
-        }
-        TextField {
-            id: passwordField
-            width: 400
-            placeholderText: "Mot de passe"
-            onPressed: {
-                Qt.inputMethod.show()
-            }
-            font.pixelSize: 18
-            echoMode: TextInput.Password
-        }
-        TextField {
-            id: gradeField
-            width: 400
-            placeholderText: "grade (1=user;2=admin;3=superadmin)"
-            onPressed: {
-                Qt.inputMethod.show()
-            }
-            font.pixelSize: 18
-            echoMode: TextInput.grade
-        }
-        Button {
-            text: "Ajouter Utilisateur"
-            anchors.bottom: parent
-            width: 200
-            height: 40
-            onClicked: create_user.open()}
-    }
+                        Column{
+                            anchors.centerIn: parent
+                            width: parent.width
+                            spacing: 10
+                            TextField {
+                                id: usernameField
+                                width: 400
+                                placeholderText: "Nom d'utilisateur"
+                                font.pixelSize: 18
+                                focus: true
+                                onFocusChanged: {
+                                    if (focus) {
+                                        Qt.inputMethod.show();
+                                    }
+                                }
+                                echoMode: TextInput.id
+                            }
+                            TextField {
+                                id: passwordField
+                                width: 400
+                                placeholderText: "Mot de passe"
+                                onFocusChanged: {
+                                                if (focus) {
+                                                    Qt.inputMethod.show();
+                                                }
+                                            }
+                                font.pixelSize: 18
+                                echoMode: TextInput.Password
+                            }
+                            TextField {
+                                id: gradeField
+                                width: 400
+                                placeholderText: "grade (1=user;2=admin;3=superadmin)"
+                                onFocusChanged: {
+                                    if (focus) {
+                                        Qt.inputMethod.show();
+                                    }
+                                }
+                                font.pixelSize: 18
+                                echoMode: TextInput.grade
+                            }
+                            Button {
+                                text: "Ajouter Utilisateur"
+                                anchors.bottom: parent
+                                width: 200
+                                height: 40
+                                onClicked: create_user.open()}
+                        }
         }
                 Popup {
                         id: modif_mdp
@@ -119,7 +126,8 @@ Popup {
                         modal: true
                         focus: true
                         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-                        z: 100
+                        parent: Overlay.overlay
+                        z: 90
 
                         Column{
                             anchors.centerIn: parent
@@ -141,7 +149,7 @@ Popup {
                                 anchors.bottom: parent
                                 width: 200
                                 height: 40
-                                onClicked: if(dManager.verifuser(username_mmdp)){
+                                onClicked: if(dManager.verifUser(username_mmdp)){
                                            modif_mdp_page.open()}
                                            else{console.log("Veuillez remplir le champ.");
                                                errorMessage.text = "Veuillez remplir le champ";
@@ -157,7 +165,8 @@ Popup {
                         modal: true
                         focus: true
                         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-                        z: 100
+                        parent: Overlay.overlay
+                        z: 90
 
                         Column{
                             anchors.centerIn: parent
@@ -200,7 +209,8 @@ Popup {
                         height: page.height
                         modal: true
                         focus: true
-                        z: 100
+                        parent: Overlay.overlay
+                        z: 90
                         anchors.centerIn: page
 
                         Column{

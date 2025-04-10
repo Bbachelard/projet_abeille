@@ -47,6 +47,8 @@ public:
     void setData(float temperature, float humidity, float mass, float pressure,const QString &imagePath, const QDateTime &timestamp);
     static Ruche* createTestRuche();
 
+
+
 signals:
     void idChanged();
     void nameChanged();

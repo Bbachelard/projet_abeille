@@ -79,7 +79,7 @@ void dataManager::adduser(QString id, QString pw, int grade)
     }
 }
 
-bool dataManager::verifUser( QString &user)
+bool dataManager::verifUser(const QString& user)
 {
     if (!db.isOpen()) {
         connectDB();

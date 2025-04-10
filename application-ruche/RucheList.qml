@@ -332,13 +332,13 @@ Item {
     Dialog {
         id: popup
         title: "Ajouter une nouvelle ruche"
+        parent: Overlay.overlay
+        z: 90
         modal: true
         standardButtons: Dialog.Ok | Dialog.Cancel
         width: 400
+        height:240
         visible: false
-
-        x: (parent.width - width) / 2
-        y: (parent.height - height) / 2
 
         Column {
             spacing: 15
@@ -357,38 +357,27 @@ Item {
                 placeholderText: "Nom de la ruche"
                 font.pixelSize: 16
                 focus: true
-                onPressed: {
-                    Qt.inputMethod.show()
-                }
             }
 
-            TextField {
-                id: mqttAdresse
-                width: parent.width
-                placeholderText: "Adresse MQTT"
-                font.pixelSize: 16
-                onPressed: {
-                    Qt.inputMethod.show()
-                }
-            }
         }
 
         onAccepted: {
-            if (rucheName.text.trim() && mqttAdresse.text.trim()) {
-                var rucheId = dManager.addOrUpdateRuche(rucheName.text, mqttAdresse.text);
+            if (rucheName.text.trim()) {
+                var mqttAdresse = "v3/tp-lorawan-2024@ttn/devices/" +rucheName.text +"/up"
+                var rucheId = dManager.addOrUpdateRuche(rucheName.text, mqttAdresse);
                 if (rucheId > 0) {
                     var nouvelleRuche = RucheManager.createRuche(mqttAdresse.text);
-                    nouvelleRuche.setId(rucheId);
-                    nouvelleRuche.setName(rucheName.text);
-                    RucheManager.addRuche(nouvelleRuche);
-                    statusMessage.show("La ruche \"" + rucheName.text + "\" a été ajoutée avec succès.", "success");
+                    RucheManager.updateRucheInfo(rucheId, rucheName.text, mqttAdresse.text);
+
+                    // Rafraîchir la liste des ruches au lieu d'ajouter directement
                     refreshRuchesList();
+
+                    statusMessage.show("La ruche \"" + rucheName.text + "\" a été ajoutée avec succès.", "success");
                 } else {
                     statusMessage.show("Erreur lors de l'ajout de la ruche.", "error");
                 }
             } else {
                 statusMessage.show("Veuillez remplir tous les champs.", "error");
-                // Réouvrir le popup
                 Qt.callLater(function() {
                     popup.open();
                 });
@@ -408,8 +397,8 @@ Item {
         property int rucheId: -1
         property string rucheName: ""
 
-        x: (parent.width - width) / 2
-        y: (parent.height - height) / 2
+        parent: Overlay.overlay
+        z: 90
 
         Text {
             width: parent.width
