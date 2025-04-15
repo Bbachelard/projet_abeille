@@ -6,9 +6,8 @@ import com.example.ruche 1.0
 
 Item {
     id: root
-    width: parent.width
-    height: parent.height
-
+    width: parent ? parent.width : 800
+    height: parent ? parent.height : 480
     property int rucheId: -1
     property string rucheName: "Ruche"
     property var rucheData: []

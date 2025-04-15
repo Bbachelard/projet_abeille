@@ -32,8 +32,8 @@ Item {
             var alerteType = 0;
 
             // Récupérer la dernière valeur du capteur si le dataManager est disponible
-            if (typeof dManager !== 'undefined' && capteurId > 0) {
-                var lastValueList = dManager.getLastCapteurValue(capteurId, rucheId);
+            if (typeof sensorManager !== 'undefined' && capteurId > 0) {
+                var lastValueList = sensorManager.getLastCapteurValue(capteurId, rucheId);
 
                 // Vérifier si la liste contient des données
                 if (lastValueList.length > 0) {
@@ -54,9 +54,9 @@ Item {
                         }
 
                         // Récupérer les alertes pour ce capteur
-                        if (typeof dManager.getAlertesForCapteur === 'function') {
+                        if (typeof alerteManager.getAlertesForCapteur === 'function') {
                             // Appel à la fonction pour récupérer les alertes
-                            alertes = dManager.getAlertesForCapteur(capteurId, valeurNumerique);
+                            alertes = alerteManager.getAlertesForCapteur(capteurId, valeurNumerique);
 
 
 

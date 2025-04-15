@@ -95,15 +95,7 @@ Item {
         Row {
             spacing: 10
             anchors.horizontalCenter: parent.horizontalCenter
-            TextField {
-                id: filterField
-                width: 150
-                placeholderText: "Rechercher..."
-                onTextChanged: {
-                    filterValue = text;
-                    updateTableModel();
-                }
-            }
+
             ComboBox {
                 id: sortOrderCombo
                 width: 250

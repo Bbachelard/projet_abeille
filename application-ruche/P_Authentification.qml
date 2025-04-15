@@ -81,9 +81,9 @@ Item {
                     errorMessage.visible = true;
                     hideError.start();
                 }else{
-                    if (dManager.authentification(usernameField.text, passwordField.text)) {
+                    if (userManager.authentification(usernameField.text, passwordField.text)) {
                     console.log("Connexion réussie !");
-                    if (dManager.is_superadmin(usernameField.text))
+                    if (userManager.is_superadmin(usernameField.text))
                     {
                         livre.direction = 2;
                         livre.push("P_SAView.qml");

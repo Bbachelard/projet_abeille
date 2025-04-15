@@ -1,8 +1,12 @@
-#include "datamanager.h"
+#include "AlerteDataManager.h"
 
 
+AlerteDataManager::AlerteDataManager(QObject *parent) : dataManager(parent)
+{
+    // Initialisation spécifique pour AlerteDataManager
+}
 
-QVariantList dataManager::getAlertesForCapteur(int id_capteur, float valeur_actuelle)
+QVariantList AlerteDataManager::getAlertesForCapteur(int id_capteur, float valeur_actuelle)
 {
     QVariantList result;
     if (!db.isOpen()) {
@@ -74,7 +78,7 @@ QVariantList dataManager::getAlertesForCapteur(int id_capteur, float valeur_actu
     return result;
 }
 
-void dataManager::getAllAlertes()
+void AlerteDataManager::getAllAlertes()
 {
     if (!db.isOpen()) {
         connectDB();
@@ -104,7 +108,7 @@ void dataManager::getAllAlertes()
 }
 
 // Fonction pour ajouter une alerte
-bool dataManager::addAlerte(int id_capteur, const QString &nom, const QString &phrase,
+bool AlerteDataManager::addAlerte(int id_capteur, const QString &nom, const QString &phrase,
                             float valeur, int statut, int type, bool sens)
 {
     if (!db.isOpen()) {
@@ -132,7 +136,7 @@ bool dataManager::addAlerte(int id_capteur, const QString &nom, const QString &p
 }
 
 // Fonction pour supprimer une alerte
-bool dataManager::deleteAlerte(int id_alerte)
+bool AlerteDataManager::deleteAlerte(int id_alerte)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -150,7 +154,7 @@ bool dataManager::deleteAlerte(int id_alerte)
     return true;
 }
 
-bool dataManager::updateAlerte(int id_alerte, int id_capteur, const QString &nom, const QString &phrase,
+bool AlerteDataManager::updateAlerte(int id_alerte, int id_capteur, const QString &nom, const QString &phrase,
                                float valeur, int statut, int type, bool sens)
 {
     if (!db.isOpen()) {

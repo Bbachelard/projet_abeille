@@ -1,4 +1,4 @@
-#include "datamanager.h"
+#include "dataManager.h"
 #include <QProcess>
 #include <QDebug>
 #include <QFile>

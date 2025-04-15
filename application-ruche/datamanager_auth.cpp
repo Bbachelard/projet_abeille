@@ -1,6 +1,11 @@
-#include "datamanager.h"
+#include "UserDataManager.h"
 
-bool dataManager::authentification(QString a, QString b)
+UserDataManager::UserDataManager(QObject *parent) : dataManager(parent)
+{
+    // Initialisation spécifique pour UserDataManager
+}
+
+bool UserDataManager::authentification(QString a, QString b)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -35,7 +40,7 @@ bool dataManager::authentification(QString a, QString b)
     return false;
 }
 
-bool dataManager::is_superadmin(QString a)
+bool UserDataManager::is_superadmin(QString a)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -62,7 +67,7 @@ bool dataManager::is_superadmin(QString a)
     return false;
 }
 
-void dataManager::adduser(QString id, QString pw, int grade)
+void UserDataManager::adduser(QString id, QString pw, int grade)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -79,7 +84,7 @@ void dataManager::adduser(QString id, QString pw, int grade)
     }
 }
 
-bool dataManager::verifUser(const QString& user)
+bool UserDataManager::verifUser(const QString& user)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -100,7 +105,7 @@ bool dataManager::verifUser(const QString& user)
 }
 
 
-void dataManager::modifpw(QString id, QString pw)
+void UserDataManager::modifpw(QString id, QString pw)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -116,7 +121,7 @@ void dataManager::modifpw(QString id, QString pw)
     }
 }
 
-void dataManager::modifgrade(QString id, int grade)
+void UserDataManager::modifgrade(QString id, int grade)
 {
     if (!db.isOpen()) {
         connectDB();

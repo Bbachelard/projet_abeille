@@ -24,7 +24,7 @@ RucheList {
         onClicked: {
 
             alertesModel.clear()
-            dManager.getAllAlertes()
+            alerteManager.getAllAlertes()
             alertePopup.open()
         }
     }
@@ -514,9 +514,8 @@ RucheList {
 
         // Connexion au DataManager
         Connections {
-            target: dManager
-
-            function onAlertesReceived(id, id_capteur, nom, phrase, valeur, statut, type,sens) {
+            target: alerteManager
+            function onAlertesReceived(id, id_capteur, nom, phrase, valeur, statut, type, sens) {
                 alertesModel.append({
                     "id": id,
                     "id_capteur": id_capteur,
@@ -525,7 +524,7 @@ RucheList {
                     "valeur": valeur,
                     "statut": statut,
                     "type": type,
-                    "sens":sens
+                    "sens": sens
                 })
             }
         }
@@ -728,7 +727,7 @@ RucheList {
                             }
 
                             // Appel à la fonction d'ajout d'alerte
-                            var success = dManager.addAlerte(
+                            var success = alerteManager.addAlerte(
                                 capteurCombo.currentValue,
                                 nomField.text.trim(),
                                 phraseField.text.trim(),
@@ -742,7 +741,7 @@ RucheList {
                                 addAlerteDialog.close()
                                 // Rafraîchir la liste
                                 alertesModel.clear()
-                                dManager.getAllAlertes()
+                                alerteManager.getAllAlertes()
                             }
                         }
                     }
@@ -811,12 +810,12 @@ RucheList {
                         }
 
                         onClicked: {
-                            var success = dManager.deleteAlerte(confirmDeleteDialog.alerteId)
+                            var success = alerteManager.deleteAlerte(confirmDeleteDialog.alerteId)
                             if (success) {
                                 confirmDeleteDialog.close()
                                 // Rafraîchir la liste
                                 alertesModel.clear()
-                                dManager.getAllAlertes()
+                                alerteManager.getAllAlertes()
                                 alertesListView.currentRow = -1
                             }
                         }
@@ -1031,7 +1030,7 @@ RucheList {
                             }
 
                             // Appel à la fonction de mise à jour d'alerte
-                            var success = dManager.updateAlerte(
+                            var success = alerteManager.updateAlerte(
                                 editAlerteDialog.alerteId,
                                 editCapteurCombo.currentValue,
                                 editNomField.text.trim(),
@@ -1046,7 +1045,7 @@ RucheList {
                                 editAlerteDialog.close()
                                 // Rafraîchir la liste
                                 alertesModel.clear()
-                                dManager.getAllAlertes()
+                                alerteManager.getAllAlertes()
                             }
                         }
                     }

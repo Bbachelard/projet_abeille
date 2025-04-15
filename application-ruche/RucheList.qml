@@ -23,7 +23,7 @@ Item {
     }
 
     function refreshRuchesList() {
-        ruchesList = dManager.getRuchesList();
+        ruchesList = rucheManager.getRuchesList();
     }
 
     // Interface utilisateur
@@ -298,7 +298,7 @@ Item {
 
         try {
             // Récupérer les données de cette ruche
-            var rucheData = dManager.getRucheData(id);
+            var rucheData = rucheManager.getRucheData(id);
             var dataLength = rucheData ? rucheData.length : 0;
             console.log("Données récupérées : ", dataLength);
 
@@ -364,12 +364,10 @@ Item {
         onAccepted: {
             if (rucheName.text.trim()) {
                 var mqttAdresse = "v3/tp-lorawan-2024@ttn/devices/" +rucheName.text +"/up"
-                var rucheId = dManager.addOrUpdateRuche(rucheName.text, mqttAdresse);
+                var rucheId = rucheManager.addOrUpdateRuche(rucheName.text, mqttAdresse);
                 if (rucheId > 0) {
                     var nouvelleRuche = RucheManager.createRuche(mqttAdresse.text);
                     RucheManager.updateRucheInfo(rucheId, rucheName.text, mqttAdresse.text);
-
-                    // Rafraîchir la liste des ruches au lieu d'ajouter directement
                     refreshRuchesList();
 
                     statusMessage.show("La ruche \"" + rucheName.text + "\" a été ajoutée avec succès.", "success");
@@ -409,7 +407,7 @@ Item {
 
         onAccepted: {
             // Exécuter la suppression
-            var success = dManager.deleteRuche(confirmDeleteDialog.rucheId);
+            var success = rucheManager.deleteRuche(confirmDeleteDialog.rucheId);
             if (success) {
                 statusMessage.show("La ruche \"" + confirmDeleteDialog.rucheName + "\" a été supprimée avec succès.", "success");
                 refreshRuchesList();

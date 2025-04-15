@@ -149,7 +149,7 @@ Item {
                                 anchors.bottom: parent
                                 width: 200
                                 height: 40
-                                onClicked: if(dManager.verifUser(username_mmdp)){
+                                onClicked: if(alerteManager.verifUser(username_mmdp)){
                                            modif_mdp_page.open()}
                                            else{console.log("Veuillez remplir le champ.");
                                                errorMessage.text = "Veuillez remplir le champ";
@@ -245,7 +245,7 @@ Item {
                                             errorMessage.visible = true;
                                             hideError.start();
                                         }else{
-                                            dManager.modifpw(password.text, username_mmdp.text)
+                                            alerteManager.modifpw(password.text, username_mmdp.text)
                                             console.log("mot de passes modifié");
 
                                         }

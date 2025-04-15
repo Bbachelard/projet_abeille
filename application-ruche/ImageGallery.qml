@@ -33,7 +33,7 @@ Item {
             return;
         }
 
-        var images = dManager.getRucheImages(rucheId);
+        var images = rucheManager.getRucheImages(rucheId);
 
         imagesModel.clear();
         for (var i = 0; i < images.length; i++) {
@@ -128,8 +128,8 @@ Item {
     function supprimerImage(imageId, cheminImage) {
         console.log("Suppression de l'image:", imageId, "chemin:", cheminImage);
 
-        if (typeof dManager !== "undefined" && typeof dManager.deleteImage === "function") {
-            var result = dManager.deleteImage(imageId, cheminImage);
+        if (typeof rucheManager !== "undefined" && typeof rucheManager.deleteImage === "function") {
+            var result = rucheManager.deleteImage(imageId, cheminImage);
             if (result) {
                 chargerImages();
                 statusPopup.show("Image supprimée avec succès", "success");
@@ -317,7 +317,7 @@ Item {
         contentItem: Item {
             Image {
                 anchors.fill: parent
-                source: "file://" + popupImage.imageSource
+                source: popupImage.imageSource ? "file://" + popupImage.imageSource : ""
                 fillMode: Image.PreserveAspectFit
 
                 Rectangle {

@@ -31,10 +31,14 @@ QML_DESIGNER_IMPORT_PATH =
 # Default rules for deployment.
 
 HEADERS += \
+    AlerteDataManager.h \
     MqttHandler.h \
+    RucheDataManager.h \
+    SensorDataManager.h \
+    UserDataManager.h \
     configurateurruche.h \
     data.h \
-    datamanager.h \
+    dataManager.h \
     ruche.h
 
 DISTFILES += \

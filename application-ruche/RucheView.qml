@@ -32,6 +32,11 @@ Item {
     DataManager {
         id: dataManager
 
+        // Initialiser avec les deux managers
+        Component.onCompleted: {
+            dataManager.initialize(rucheManager, sensorManager);
+        }
+
         onDataLoaded: function(data) {
             capteursData = JSON.parse(JSON.stringify(data));
             updateCapteurComboBox();
@@ -46,7 +51,7 @@ Item {
     }
 
     Component.onCompleted: {
-        dataManager.initialize(dManager);
+        dataManager.initialize(rucheManager, sensorManager);
         if (rucheData && rucheData.length > 0) {
             capteursData = JSON.parse(JSON.stringify(rucheData));
             updateCapteurComboBox();
@@ -58,20 +63,25 @@ Item {
         }
         loadRucheBattery();
     }
+
     function refreshData() {
         if (rucheId > 0) {
-            var data = dataManager.loadRucheData(rucheId);
+            var data = rucheManager.getRucheData(rucheId);  // Méthode correcte?
             if (data && data.length > 0) {
                 capteursData = JSON.parse(JSON.stringify(data));
             }
         }
     }
+
     function refreshChartData() {
         if (rucheId > 0) {
             var capteursCopy = JSON.parse(JSON.stringify(capteursData));
             dataManager.loadChartData(rucheId, capteurSelectionne, capteursCopy, showAllCapteurs);
+        } else {
+            console.log("refreshChartData: ID de ruche invalide", rucheId);
         }
     }
+
     function updateCapteurComboBox() {
         capteurComboModel.clear();
         capteurComboModel.append({"name": "Tous", "id": -1});
@@ -84,6 +94,7 @@ Item {
             }
         }
     }
+
     function updateGraphView(data, minDate, maxDate, capteurType, isMultiple) {
         graphView.chartData = JSON.parse(JSON.stringify(data));
         graphView.chartTitle = isMultiple ? "Évolution de tous les capteurs" : ("Évolution des " + capteurType);
@@ -100,7 +111,7 @@ Item {
     }
     function loadRucheBattery() {
         if (rucheId > 0) {
-            var ruches = dManager.getRuchesList();
+            var ruches = rucheManager.getRuchesList();
             for (var i = 0; i < ruches.length; i++) {
                 if (ruches[i].id_ruche === rucheId) {
                     rucheBattery = ruches[i].batterie;
@@ -110,7 +121,7 @@ Item {
         }
     }
     Connections {
-        target: RucheManager
+        target: rucheManager
         function onBatteryUpdated(rucheId, batteryValue) {
             if (rucheId === root.rucheId) {
                 rucheBattery = batteryValue;
@@ -200,8 +211,6 @@ Item {
             loadRucheBattery();
             refreshChartData();
             imageGallery.chargerImages();
-            successMessage.visible = true;
-            successTimer.restart();
             capteurComboModel.append({"name": "Tous", "id": -1});
         }
     }

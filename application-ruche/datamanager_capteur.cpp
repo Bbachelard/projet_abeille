@@ -1,6 +1,11 @@
-#include "datamanager.h"
+#include "SensorDataManager.h"
 
-void dataManager::saveData(int id_ruche, int id_capteur, float valeur, QDateTime date_mesure)
+SensorDataManager::SensorDataManager(QObject *parent) : dataManager(parent)
+{
+    // Initialisation spécifique pour SensorDataManager
+}
+
+void SensorDataManager::saveData(int id_ruche, int id_capteur, float valeur, QDateTime date_mesure)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -19,13 +24,15 @@ void dataManager::saveData(int id_ruche, int id_capteur, float valeur, QDateTime
 }
 
 
-QVariantList dataManager::getCapteurGraphData(int id_ruche, int id_capteur)
+QVariantList SensorDataManager::getCapteurGraphData(int id_ruche, int id_capteur)
 {
     QVariantList graphData;
 
     if (!db.isOpen()) {
         connectDB();
     }
+
+    // Récupérer l'unité de mesure du capteur
     QSqlQuery measureQuery;
     measureQuery.prepare("SELECT mesure FROM capteurs WHERE id_capteur = :id_capteur");
     measureQuery.bindValue(":id_capteur", id_capteur);
@@ -34,15 +41,19 @@ QVariantList dataManager::getCapteurGraphData(int id_ruche, int id_capteur)
     if (measureQuery.exec() && measureQuery.next()) {
         uniteMesure = measureQuery.value("mesure").toString();
     }
+
+    // Récupérer les données du capteur
     QSqlQuery query;
     query.prepare("SELECT valeur, date_mesure FROM donnees WHERE id_capteur = :id_capteur AND id_ruche = :id_ruche ORDER BY date_mesure ASC");
     query.bindValue(":id_capteur", id_capteur);
     query.bindValue(":id_ruche", id_ruche);
+
     if (!query.exec()) {
         qDebug() << "Erreur lors de la récupération des données graphiques:" << query.lastError().text();
         return graphData;
     }
 
+    // Remplir graphData avec les résultats
     while (query.next()) {
         QVariantMap point;
         point["valeur"] = query.value("valeur").toFloat();
@@ -51,10 +62,34 @@ QVariantList dataManager::getCapteurGraphData(int id_ruche, int id_capteur)
         graphData.append(point);
     }
 
+    // Calcul des dates min/max si des données existent
+    QDateTime minDate, maxDate;
+    if (graphData.size() > 0) {
+        QString firstDateStr = graphData.first().toMap()["date_mesure"].toString();
+        QString lastDateStr = graphData.last().toMap()["date_mesure"].toString();
+        minDate = QDateTime::fromString(firstDateStr, "yyyy-MM-dd HH:mm:ss");
+        maxDate = QDateTime::fromString(lastDateStr, "yyyy-MM-dd HH:mm:ss");
+    }
+
+    // Déterminer le type de capteur
+    QString capteurType = "Capteur";
+    QSqlQuery typeQuery;
+    typeQuery.prepare("SELECT type FROM capteurs WHERE id_capteur = :id_capteur");
+    typeQuery.bindValue(":id_capteur", id_capteur);
+    if (typeQuery.exec() && typeQuery.next()) {
+        capteurType = typeQuery.value("type").toString();
+    }
+
+    // Afficher un log pour le débogage
+    qDebug() << "getCapteurGraphData: Récupération de" << graphData.size() << "points de données pour le capteur" << id_capteur << "(" << capteurType << ")";
+
+    // Émettre le signal pour le QML
+    emit chartDataLoaded(graphData, minDate, maxDate, capteurType, false);
+
     return graphData;
 }
 
-QVariantList dataManager::getAllRucheData()
+QVariantList SensorDataManager::getAllRucheData()
 {
     QVariantList allDataList;
     if (!db.isOpen()) {
@@ -94,7 +129,7 @@ QVariantList dataManager::getAllRucheData()
 }
 
 
-QVariantList dataManager::getLastCapteurValue(int id_capteur, int id_ruche)
+QVariantList SensorDataManager::getLastCapteurValue(int id_capteur, int id_ruche)
 {
     QVariantList result;
     if (!db.isOpen()) {

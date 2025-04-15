@@ -1,7 +1,12 @@
-#include "datamanager.h"
+#include "RucheDataManager.h"
 #include <QFileInfo>
 
-QVariantList dataManager::getRucheData(int id_ruche)
+RucheDataManager::RucheDataManager(QObject *parent) : dataManager(parent)
+{
+
+}
+
+QVariantList RucheDataManager::getRucheData(int id_ruche)
 {
     QVariantList capteursList;
     if (!db.isOpen()) {
@@ -41,7 +46,7 @@ QVariantList dataManager::getRucheData(int id_ruche)
     return capteursList;
 }
 
-int dataManager::addOrUpdateRuche(const QString &name, const QString &adress, double batterie)
+int RucheDataManager::addOrUpdateRuche(const QString &name, const QString &adress, double batterie)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -78,7 +83,7 @@ int dataManager::addOrUpdateRuche(const QString &name, const QString &adress, do
     }
 }
 
-bool dataManager::updateRucheBatterie(int rucheId, double batterie)
+bool RucheDataManager::updateRucheBatterie(int rucheId, double batterie)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -91,11 +96,11 @@ bool dataManager::updateRucheBatterie(int rucheId, double batterie)
         qDebug() << "Erreur lors de la mise à jour de la batterie:" << query.lastError().text();
         return false;
     }
-
+    emit batteryUpdated(rucheId, batterie);
     return true;
 }
 
-QVariantList dataManager::getRuchesList()
+QVariantList RucheDataManager::getRuchesList()
 {
     QVariantList ruchesList;
 
@@ -119,7 +124,7 @@ QVariantList dataManager::getRuchesList()
     return ruchesList;
 }
 
-bool dataManager::deleteRuche(int rucheId)
+bool RucheDataManager::deleteRuche(int rucheId)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -156,7 +161,7 @@ bool dataManager::deleteRuche(int rucheId)
     return true;
 }
 
-QVariantList dataManager::getRucheImages(int rucheId)
+QVariantList RucheDataManager::getRucheImages(int rucheId)
 {
     QVariantList results;
 
@@ -191,7 +196,7 @@ QVariantList dataManager::getRucheImages(int rucheId)
     return results;
 }
 
-bool dataManager::addImage(int idImage, int idRuche, const QString& cheminFichier, const QString& dateCapture)
+bool RucheDataManager::addImage(int idImage, int idRuche, const QString& cheminFichier, const QString& dateCapture)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -229,7 +234,7 @@ bool dataManager::addImage(int idImage, int idRuche, const QString& cheminFichie
 }
 
 
-bool dataManager::deleteImage(int imageId, const QString& cheminFichier)
+bool RucheDataManager::deleteImage(int imageId, const QString& cheminFichier)
 {
     if (!db.isOpen()) {
         connectDB();

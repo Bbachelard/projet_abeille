@@ -1,7 +1,14 @@
 #include "MqttHandler.h"
 
-MqttHandler::MqttHandler(configurateurRuche *configurateur,dataManager *dManager,QObject *parent)
-    : QObject(parent), configurateur(configurateur),dbManager(dManager)
+
+MqttHandler::MqttHandler(configurateurRuche *configurateur,
+                         RucheDataManager *rucheManager,
+                         SensorDataManager *sensorManager,
+                         QObject *parent)
+    : QObject(parent),
+    configurateur(configurateur),
+    rucheManager(rucheManager),
+    sensorManager(sensorManager)
 {
     mqttClient = new QMqttClient(this);
     mqttClient->setHostname("eu1.cloud.thethings.network");
@@ -106,7 +113,7 @@ void MqttHandler::onMessageReceived(const QByteArray &message, const QMqttTopicN
     QDateTime receivedDateTime = QDateTime::fromString(receivedAt, Qt::ISODateWithMs);
     receivedDateTime = receivedDateTime.addSecs(3600); // +1h pour Paris
 
-    int rucheId = dbManager->addOrUpdateRuche(rucheName, topicName, batteryLevel);
+    int rucheId = rucheManager->addOrUpdateRuche(rucheName, topicName, batteryLevel);
     if (rucheId < 0) {
         return;
     }
@@ -131,11 +138,11 @@ void MqttHandler::onMessageReceived(const QByteArray &message, const QMqttTopicN
     try {
         cibleRuche->setData(temperature, humidity, mass, pressure, imgPath, receivedDateTime);
 
-        dbManager->saveData(rucheId, 1, temperature, receivedDateTime);  // Température
-        dbManager->saveData(rucheId, 2, humidity, receivedDateTime);     // Humidité
-        dbManager->saveData(rucheId, 3, mass, receivedDateTime);         // Masse
-        dbManager->saveData(rucheId, 4, pressure, receivedDateTime);     // Pression
-        dbManager->updateRucheBatterie(rucheId, batteryLevel);
+        sensorManager->saveData(rucheId, 1, temperature, receivedDateTime);  // Température
+        sensorManager->saveData(rucheId, 2, humidity, receivedDateTime);     // Humidité
+        sensorManager->saveData(rucheId, 3, mass, receivedDateTime);         // Masse
+        sensorManager->saveData(rucheId, 4, pressure, receivedDateTime);     // Pression
+        rucheManager->updateRucheBatterie(rucheId, batteryLevel);
         qDebug() << "DONNÉES ENREGISTRÉES EN DB - RUCHE:" << rucheId;
 
     } catch (const std::exception& e) {
