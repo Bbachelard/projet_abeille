@@ -1,6 +1,11 @@
-#include "datamanager.h"
+#include "SensorDataManager.h"
 
-void dataManager::saveData(int id_ruche, int id_capteur, float valeur, QDateTime date_mesure)
+SensorDataManager::SensorDataManager(QObject *parent) : dataManager(parent)
+{
+    // Initialisation spécifique pour SensorDataManager
+}
+
+void SensorDataManager::saveData(int id_ruche, int id_capteur, float valeur, QDateTime date_mesure)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -18,76 +23,80 @@ void dataManager::saveData(int id_ruche, int id_capteur, float valeur, QDateTime
     }
 }
 
-QVariantList dataManager::getRucheData(int id_ruche)
-{
-    QVariantList capteursList;
-    if (!db.isOpen()) {
-        connectDB();
-    }
-    QString queryString = R"(
-        SELECT c.id_capteur, c.type, c.localisation, c.description, d.valeur, d.date_mesure
-        FROM capteurs c
-        LEFT JOIN donnees d ON c.id_capteur = d.id_capteur
-        WHERE d.id_ruche = :id_ruche AND d.date_mesure = (
-            SELECT MAX(d2.date_mesure) FROM donnees d2
-            WHERE d2.id_capteur = c.id_capteur AND d2.id_ruche = :id_ruche
-        )
-        ORDER BY c.id_capteur;
-    )";
-    QSqlQuery query;
-    query.prepare(queryString);
-    query.bindValue(":id_ruche", id_ruche);
-    if (!query.exec()) {
-        qDebug() << "Erreur lors de la récupération des données de la ruche:" << query.lastError().text();
-        return capteursList;
-    }
-    while (query.next()) {
-        QVariantMap capteur;
-        capteur["id_capteur"] = query.value("id_capteur").toInt();
-        capteur["type"] = query.value("type").toString();
-        capteur["localisation"] = query.value("localisation").toString();
-        capteur["description"] = query.value("description").toString();
-        capteur["valeur"] = query.value("valeur").toFloat();
-        capteur["date_mesure"] = query.value("date_mesure").toString();
-        capteursList.append(capteur);
-    }
-    return capteursList;
-}
 
-QVariantList dataManager::getCapteurGraphData(int id_ruche, int id_capteur)
+QVariantList SensorDataManager::getCapteurGraphData(int id_ruche, int id_capteur)
 {
     QVariantList graphData;
 
     if (!db.isOpen()) {
         connectDB();
     }
+
+    // Récupérer l'unité de mesure du capteur
+    QSqlQuery measureQuery;
+    measureQuery.prepare("SELECT mesure FROM capteurs WHERE id_capteur = :id_capteur");
+    measureQuery.bindValue(":id_capteur", id_capteur);
+    QString uniteMesure;
+
+    if (measureQuery.exec() && measureQuery.next()) {
+        uniteMesure = measureQuery.value("mesure").toString();
+    }
+
+    // Récupérer les données du capteur
     QSqlQuery query;
     query.prepare("SELECT valeur, date_mesure FROM donnees WHERE id_capteur = :id_capteur AND id_ruche = :id_ruche ORDER BY date_mesure ASC");
     query.bindValue(":id_capteur", id_capteur);
     query.bindValue(":id_ruche", id_ruche);
+
     if (!query.exec()) {
         qDebug() << "Erreur lors de la récupération des données graphiques:" << query.lastError().text();
         return graphData;
     }
 
+    // Remplir graphData avec les résultats
     while (query.next()) {
         QVariantMap point;
         point["valeur"] = query.value("valeur").toFloat();
         point["date_mesure"] = query.value("date_mesure").toString();
+        point["unite_mesure"] = uniteMesure;
         graphData.append(point);
     }
+
+    // Calcul des dates min/max si des données existent
+    QDateTime minDate, maxDate;
+    if (graphData.size() > 0) {
+        QString firstDateStr = graphData.first().toMap()["date_mesure"].toString();
+        QString lastDateStr = graphData.last().toMap()["date_mesure"].toString();
+        minDate = QDateTime::fromString(firstDateStr, "yyyy-MM-dd HH:mm:ss");
+        maxDate = QDateTime::fromString(lastDateStr, "yyyy-MM-dd HH:mm:ss");
+    }
+
+    // Déterminer le type de capteur
+    QString capteurType = "Capteur";
+    QSqlQuery typeQuery;
+    typeQuery.prepare("SELECT type FROM capteurs WHERE id_capteur = :id_capteur");
+    typeQuery.bindValue(":id_capteur", id_capteur);
+    if (typeQuery.exec() && typeQuery.next()) {
+        capteurType = typeQuery.value("type").toString();
+    }
+
+    // Afficher un log pour le débogage
+    qDebug() << "getCapteurGraphData: Récupération de" << graphData.size() << "points de données pour le capteur" << id_capteur << "(" << capteurType << ")";
+
+    // Émettre le signal pour le QML
+    emit chartDataLoaded(graphData, minDate, maxDate, capteurType, false);
 
     return graphData;
 }
 
-QVariantList dataManager::getAllRucheData()
+QVariantList SensorDataManager::getAllRucheData()
 {
     QVariantList allDataList;
     if (!db.isOpen()) {
         connectDB();
     }
     QString queryString = R"(
-        SELECT d.id_donnee, r.name as ruche_name, c.type, d.valeur, d.date_mesure
+        SELECT d.id_donnee, r.name as ruche_name, c.type, c.mesure, d.valeur, d.date_mesure
         FROM capteurs c
         INNER JOIN donnees d ON c.id_capteur = d.id_capteur
         INNER JOIN ruche r ON d.id_ruche = r.id_ruche
@@ -103,12 +112,14 @@ QVariantList dataManager::getAllRucheData()
         int idDonnee = query.value("id_donnee").toInt();
         QString rucheName = query.value("ruche_name").toString();
         QString type = query.value("type").toString();
+        QString mesure = query.value("mesure").toString();
         float valeur = query.value("valeur").toFloat();
         QString dateMesure = query.value("date_mesure").toString();
         if (!type.isEmpty() && !dateMesure.isEmpty()) {
             donnee["id_donnee"] = idDonnee;
             donnee["ruche_name"] = rucheName;
             donnee["type"] = type;
+            donnee["mesure"] = mesure;
             donnee["valeur"] = valeur;
             donnee["date_mesure"] = dateMesure;
             allDataList.append(donnee);
@@ -117,76 +128,62 @@ QVariantList dataManager::getAllRucheData()
     return allDataList;
 }
 
-int dataManager::addCapteur(int rucheId, const QString &type, const QString &localisation, const QString &description)
+
+QVariantList SensorDataManager::getLastCapteurValue(int id_capteur, int id_ruche)
 {
+    QVariantList result;
     if (!db.isOpen()) {
         connectDB();
     }
-
+    // D'abord, récupérer les informations sur le capteur pour obtenir l'unité de mesure
+    QSqlQuery capteurQuery;
+    capteurQuery.prepare("SELECT type, mesure FROM capteurs WHERE id_capteur = :id_capteur");
+    capteurQuery.bindValue(":id_capteur", id_capteur);
+    QString type;
+    QString uniteMesure;
+    if (capteurQuery.exec() && capteurQuery.next()) {
+        type = capteurQuery.value("type").toString();
+        uniteMesure = capteurQuery.value("mesure").toString();
+    } else {
+        qDebug() << "Erreur lors de la récupération des informations du capteur:" << capteurQuery.lastError().text();
+        return result;
+    }
+    // Ensuite, récupérer la dernière valeur mesurée
     QSqlQuery query;
-    query.prepare("INSERT INTO capteurs (type, localisation, description) VALUES (:type, :localisation, :description)");
-    query.bindValue(":type", type);
-    query.bindValue(":localisation", localisation);
-    query.bindValue(":description", description);
+    query.prepare("SELECT valeur, date_mesure FROM donnees WHERE id_capteur = :id_capteur AND id_ruche = :id_ruche ORDER BY date_mesure DESC LIMIT 1");
+    query.bindValue(":id_capteur", id_capteur);
+    query.bindValue(":id_ruche", id_ruche);
 
-    if (!query.exec()) {
-        qDebug() << "Erreur lors de l'ajout du capteur:" << query.lastError().text();
-        return -1;
+    if (query.exec() && query.next()) {
+        float valeur = query.value("valeur").toFloat();
+        QString dateMesure = query.value("date_mesure").toString();
+        QDateTime dateTime = QDateTime::fromString(dateMesure, "yyyy-MM-dd HH:mm:ss");
+        QString dateFormatee;
+        if (dateTime.isValid()) {
+            dateFormatee = dateTime.toString("dd/MM/yyyy HH:mm");
+        } else {
+            dateFormatee = dateMesure;
+        }
+
+        // Créer un QVariantMap pour chaque élément de résultat et l'ajouter à la liste
+        QVariantMap item;
+        item["success"] = true;
+        item["valeur"] = valeur;
+        item["date_mesure"] = dateMesure;
+        item["type"] = type;
+        item["unite_mesure"] = uniteMesure;
+        item["date_formatee"] = dateFormatee;
+
+        result.append(item);
+    } else {
+        qDebug() << "Aucune donnée trouvée pour ce capteur:" << query.lastError().text();
+        // Ajouter un élément indiquant l'échec
+        QVariantMap errorItem;
+        errorItem["success"] = false;
+        result.append(errorItem);
     }
 
-    int capteurId = query.lastInsertId().toInt();
-    QDateTime now = QDateTime::currentDateTime();
-    QSqlQuery dataQuery;
-    dataQuery.prepare("INSERT INTO donnees (id_capteur, id_ruche, valeur, date_mesure) VALUES (:id_capteur, :id_ruche, :valeur, :date_mesure)");
-    dataQuery.bindValue(":id_capteur", capteurId);
-    dataQuery.bindValue(":id_ruche", rucheId);
-    dataQuery.bindValue(":valeur", 0.0);
-    dataQuery.bindValue(":date_mesure", now.toString("yyyy-MM-dd HH:mm:ss"));
-
-    if (!dataQuery.exec()) {
-        qDebug() << "Erreur lors de l'ajout de la mesure initiale:" << dataQuery.lastError().text();
-        QSqlQuery deleteQuery;
-        deleteQuery.prepare("DELETE FROM capteurs WHERE id_capteur = :id_capteur");
-        deleteQuery.bindValue(":id_capteur", capteurId);
-        deleteQuery.exec();
-
-        return -1;
-    }
-
-    return capteurId;
+    return result;
 }
 
-bool dataManager::deleteCapteur(int capteurId)
-{
-    if (!db.isOpen()) {
-        connectDB();
-    }
 
-    if (!db.transaction()) {
-        qDebug() << "Erreur lors du démarrage de la transaction:" << db.lastError().text();
-        return false;
-    }
-    QSqlQuery deleteDataQuery;
-    deleteDataQuery.prepare("DELETE FROM donnees WHERE id_capteur = :id_capteur");
-    deleteDataQuery.bindValue(":id_capteur", capteurId);
-    if (!deleteDataQuery.exec()) {
-        qDebug() << "Erreur lors de la suppression des données du capteur:" << deleteDataQuery.lastError().text();
-        db.rollback();
-        return false;
-    }
-    QSqlQuery deleteCapteurQuery;
-    deleteCapteurQuery.prepare("DELETE FROM capteurs WHERE id_capteur = :id_capteur");
-    deleteCapteurQuery.bindValue(":id_capteur", capteurId);
-    if (!deleteCapteurQuery.exec()) {
-        qDebug() << "Erreur lors de la suppression du capteur:" << deleteCapteurQuery.lastError().text();
-        db.rollback();
-        return false;
-    }
-    if (!db.commit()) {
-        qDebug() << "Erreur lors de la validation de la transaction:" << db.lastError().text();
-        db.rollback();
-        return false;
-    }
-
-    return true;
-}

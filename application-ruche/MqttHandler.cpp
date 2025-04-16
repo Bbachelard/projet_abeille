@@ -1,7 +1,14 @@
 #include "MqttHandler.h"
 
-MqttHandler::MqttHandler(configurateurRuche *configurateur,dataManager *dManager,QObject *parent)
-    : QObject(parent), configurateur(configurateur),dbManager(dManager)
+
+MqttHandler::MqttHandler(configurateurRuche *configurateur,
+                         RucheDataManager *rucheManager,
+                         SensorDataManager *sensorManager,
+                         QObject *parent)
+    : QObject(parent),
+    configurateur(configurateur),
+    rucheManager(rucheManager),
+    sensorManager(sensorManager)
 {
     mqttClient = new QMqttClient(this);
     mqttClient->setHostname("eu1.cloud.thethings.network");
@@ -18,13 +25,10 @@ void MqttHandler::connectToBroker()
     mqttClient->connectToHost();
 }
 
-
-
 void MqttHandler::onConnected()
 {
     qDebug() << "Connected to MQTT broker";
     mqttClient->subscribe(QMqttTopicFilter("v3/tp-lorawan-2024@ttn/devices/#"));
-
 }
 
 void MqttHandler::onMessageReceived(const QByteArray &message, const QMqttTopicName &topic)
@@ -85,20 +89,11 @@ void MqttHandler::onMessageReceived(const QByteArray &message, const QMqttTopicN
         }
         else if (jsonPayload.isObject()) {
             QJsonObject jsonData = jsonPayload.object();
-            temperature = jsonData.contains("Temp") ? jsonData["Temp"].toDouble() : 0.0f;
-            humidity = jsonData.contains("Hum") ? jsonData["Hum"].toDouble() : 0.0f;
-            mass = jsonData.contains("Masse") ? jsonData["Masse"].toDouble() : 0.0f;
-            pressure = jsonData.contains("Pres") ? jsonData["Pres"].toDouble() : 0.0f;
-            batteryLevel = jsonData["Bat"].toDouble();
-            if (temperature == 0 && humidity == 0 && mass == 0 && pressure == 0) {
-                qDebug() << "ALERTE: Toutes les valeurs sont à zéro - valeurs forcées pour test";
-                temperature = 23.0f;
-                humidity = 35.0f;
-                mass = 49.0f;
-                pressure = 8.0f;
-                batteryLevel =100;
-            }
-
+            temperature = jsonData.contains("T") ? jsonData["T"].toDouble() : 0.0f;
+            humidity = jsonData.contains("H") ? jsonData["H"].toDouble() : 0.0f;
+            mass = jsonData.contains("M") ? jsonData["M"].toDouble() : 0.0f;
+            pressure = jsonData.contains("P") ? jsonData["P"].toDouble() : 0.0f;
+            batteryLevel = jsonData.contains("Bat") ? jsonData["Bat"].toDouble() : 0.0f;
             dataValid = true;
         }
     }
@@ -118,7 +113,7 @@ void MqttHandler::onMessageReceived(const QByteArray &message, const QMqttTopicN
     QDateTime receivedDateTime = QDateTime::fromString(receivedAt, Qt::ISODateWithMs);
     receivedDateTime = receivedDateTime.addSecs(3600); // +1h pour Paris
 
-    int rucheId = dbManager->addOrUpdateRuche(rucheName, topicName, batteryLevel);
+    int rucheId = rucheManager->addOrUpdateRuche(rucheName, topicName, batteryLevel);
     if (rucheId < 0) {
         return;
     }
@@ -143,11 +138,11 @@ void MqttHandler::onMessageReceived(const QByteArray &message, const QMqttTopicN
     try {
         cibleRuche->setData(temperature, humidity, mass, pressure, imgPath, receivedDateTime);
 
-        dbManager->saveData(rucheId, 1, temperature, receivedDateTime);  // Température
-        dbManager->saveData(rucheId, 2, humidity, receivedDateTime);     // Humidité
-        dbManager->saveData(rucheId, 3, mass, receivedDateTime);         // Masse
-        dbManager->saveData(rucheId, 4, pressure, receivedDateTime);     // Pression
-
+        sensorManager->saveData(rucheId, 1, temperature, receivedDateTime);  // Température
+        sensorManager->saveData(rucheId, 2, humidity, receivedDateTime);     // Humidité
+        sensorManager->saveData(rucheId, 3, mass, receivedDateTime);         // Masse
+        sensorManager->saveData(rucheId, 4, pressure, receivedDateTime);     // Pression
+        rucheManager->updateRucheBatterie(rucheId, batteryLevel);
         qDebug() << "DONNÉES ENREGISTRÉES EN DB - RUCHE:" << rucheId;
 
     } catch (const std::exception& e) {
@@ -157,4 +152,57 @@ void MqttHandler::onMessageReceived(const QByteArray &message, const QMqttTopicN
     // Mise à jour de la batterie
     emit batteryUpdated(rucheId, batteryLevel);
     qDebug() << "======= FIN DU TRAITEMENT =======\n";
+}
+
+
+void MqttHandler::sendMqttMessage(const QString &deviceId, const QByteArray &payload,
+                                  const QString &port, bool confirmed)
+{
+    // Construction du topic pour l'envoi de messages downlink
+    // Format: v3/{application-id}@{tenant-id}/devices/{device-id}/down/push
+    QString topic = QString("v3/tp-lorawan-2024@ttn/devices/%1/down/push").arg(deviceId);
+
+    // Création du message JSON pour la requête downlink
+    QJsonObject messageObj;
+
+    // Construire l'objet "downlinks"
+    QJsonObject downlinkObj;
+
+    // Encoder le payload en base64
+    QString base64Payload = QString::fromLatin1(payload.toBase64());
+    downlinkObj["frm_payload"] = base64Payload;
+    downlinkObj["f_port"] = port;
+
+    // Si le message est confirmé, ajouter le champ confirmed
+    if (confirmed) {
+        downlinkObj["confirmed"] = true;
+    }
+
+    // Ajouter l'objet downlink au tableau "downlinks"
+    QJsonArray downlinksArray;
+    downlinksArray.append(downlinkObj);
+    messageObj["downlinks"] = downlinksArray;
+
+    // Convertir l'objet JSON en chaîne
+    QJsonDocument doc(messageObj);
+    QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
+    qDebug() << "Envoi de message MQTT sur le topic:" << topic;
+    qDebug() << "Payload:" << jsonData;
+
+    // Publier le message
+    qint32 publishResult = mqttClient->publish(
+        QMqttTopicName(topic),
+        jsonData,
+        0,  // QoS 0
+        false // Retain
+    );
+
+    bool success = (publishResult != -1);
+    emit messageSent(success, deviceId, QString::fromUtf8(payload));
+
+    if (success) {
+        qDebug() << "Message MQTT envoyé avec succès à" << deviceId;
+    } else {
+        qDebug() << "Échec de l'envoi du message MQTT à" << deviceId;
+    }
 }

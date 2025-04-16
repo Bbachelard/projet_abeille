@@ -2,12 +2,16 @@ import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.VirtualKeyboard 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Controls 2.15 as Controls
 
 Window {
     id: window
     width: 800
     height: 480
     visible: true
+
+    Controls.Overlay.overlay.z: 1000
+
     StackView{
         id:livre
         anchors.fill: parent
@@ -61,10 +65,13 @@ Window {
 
     InputPanel {
         id: inputPanel
-        z: 99
-        x: 0
-        y: window.height
-        width: window.width
+        z: 3000
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        visible: Qt.inputMethod.visible
+
+        property int activeHeight: visible ? height : 0
 
         states: State {
             name: "visible"

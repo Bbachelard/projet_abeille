@@ -9,26 +9,36 @@ Item {
 
     property var tableData: []
     property string capteurType: ""
+    property string uniteMesure: ""
+    property real seuilMiel: 0
     property string sortColumn: "date_mesure"
     property bool sortAscending: false
     property string filterValue: ""
+
     function updateTableModel() {
         tableModel.clear();
         if (!tableData || tableData.length === 0) return;
         var dataCopy = [];
         for (var i = 0; i < tableData.length; i++) {
-            dataCopy.push({
-                typeCapteur: capteurType,
-                valeur: tableData[i].valeur,
-                date_mesure: tableData[i].date_mesure
-            });
+                var seuil = 0;
+                if (tableData[i].seuil_miel !== undefined) {
+                    seuil = tableData[i].seuil_miel;
+                }
+                dataCopy.push({
+                    typeCapteur: capteurType,
+                    valeur: tableData[i].valeur,
+                    date_mesure: tableData[i].date_mesure,
+                    unite_mesure: tableData[i].unite_mesure || uniteMesure,
+                    seuil_miel: seuil
+                });
         }
 
         if (filterValue) {
             dataCopy = dataCopy.filter(function(item) {
                 return item.typeCapteur.toString().toLowerCase().includes(filterValue.toLowerCase()) ||
                        item.valeur.toString().includes(filterValue) ||
-                       item.date_mesure.toString().includes(filterValue);
+                       item.date_mesure.toString().includes(filterValue) ||
+                       (item.unite_mesure && item.unite_mesure.toString().toLowerCase().includes(filterValue.toLowerCase()));
             });
         }
 
@@ -77,7 +87,7 @@ Item {
         anchors.fill: parent
         spacing: 10
         Text {
-            text: "Données du capteur: " + capteurType
+            text: "Données du capteur: " + capteurType + (uniteMesure ? " (" + uniteMesure + ")" : "")
             font.pixelSize: 18
             font.bold: true
             anchors.horizontalCenter: parent.horizontalCenter
@@ -85,15 +95,7 @@ Item {
         Row {
             spacing: 10
             anchors.horizontalCenter: parent.horizontalCenter
-            TextField {
-                id: filterField
-                width: 150
-                placeholderText: "Rechercher..."
-                onTextChanged: {
-                    filterValue = text;
-                    updateTableModel();
-                }
-            }
+
             ComboBox {
                 id: sortOrderCombo
                 width: 250
@@ -157,12 +159,23 @@ Item {
                 }
 
                 Rectangle {
-                    width: parent.width * 0.2
+                    width: parent.width * 0.3
                     height: parent.height
                     color: "transparent"
 
                     Text {
-                        text: "Valeur" + (sortColumn === "valeur" ? (sortAscending ? " ▲" : " ▼") : "")
+                        text: {
+                                var headerText = "Valeur";
+                                // Si c'est un capteur de masse, ajouter le texte du seuil
+                                if (capteurType.toLowerCase().includes("masse")) {
+                                    headerText = "Valeur / Seuil";
+                                }
+                                // Ajouter l'indicateur de tri si nécessaire
+                                if (sortColumn === "valeur") {
+                                    headerText += (sortAscending ? " ▲" : " ▼");
+                                }
+                                return headerText;
+                            }
                         anchors.centerIn: parent
                         font.pixelSize: 14
                         font.bold: true
@@ -175,7 +188,7 @@ Item {
                 }
 
                 Rectangle {
-                    width: parent.width * 0.5
+                    width: parent.width * 0.4
                     height: parent.height
                     color: "transparent"
 
@@ -239,8 +252,17 @@ Item {
                         }
 
                         Text {
-                            text: valeur.toFixed(2)
-                            width: parent.width * 0.2
+                            text: {
+                                var valeurFormatee = valeur.toFixed(2);
+                                if (typeCapteur.toLowerCase().includes("masse") && model.seuil_miel !== undefined && model.seuil_miel > 0) {
+                                    valeurFormatee += " / " + model.seuil_miel.toFixed(2);
+                                }
+                                if (unite_mesure) {
+                                    valeurFormatee += " " + unite_mesure;
+                                }
+                                return valeurFormatee;
+                            }
+                            width: parent.width * 0.3
                             font.pixelSize: 14
                             verticalAlignment: Text.AlignVCenter
                             horizontalAlignment: Text.AlignHCenter
@@ -248,7 +270,7 @@ Item {
 
                         Text {
                             text: date_mesure
-                            width: parent.width * 0.5
+                            width: parent.width * 0.4
                             font.pixelSize: 14
                             verticalAlignment: Text.AlignVCenter
                             horizontalAlignment: Text.AlignHCenter

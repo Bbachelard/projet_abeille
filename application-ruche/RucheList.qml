@@ -13,16 +13,17 @@ Item {
     property int returnDirection: -1
     property bool isAdminView: false
 
-    // Signaux pour les notifications
-    signal showSuccess(string message)
-    signal showError(string message)
+    // Utiliser le composant StatusPopup pour les notifications
+    StatusPopup {
+        id: statusMessage
+    }
 
     Component.onCompleted: {
         refreshRuchesList();
     }
 
     function refreshRuchesList() {
-        ruchesList = dManager.getRuchesList();
+        ruchesList = rucheManager.getRuchesList();
     }
 
     // Interface utilisateur
@@ -284,8 +285,6 @@ Item {
         }
     }
 
-    // Supprimé : Les composants délégués sont maintenant directement intégrés dans le delegate du ListView
-
     // Fonction utilitaire pour obtenir la couleur de la batterie
     function getBatteryColor(batteryLevel) {
         if (batteryLevel > 60) return "#4CAF50";  // Vert
@@ -299,7 +298,7 @@ Item {
 
         try {
             // Récupérer les données de cette ruche
-            var rucheData = dManager.getRucheData(id);
+            var rucheData = rucheManager.getRucheData(id);
             var dataLength = rucheData ? rucheData.length : 0;
             console.log("Données récupérées : ", dataLength);
 
@@ -333,13 +332,13 @@ Item {
     Dialog {
         id: popup
         title: "Ajouter une nouvelle ruche"
+        parent: Overlay.overlay
+        z: 90
         modal: true
         standardButtons: Dialog.Ok | Dialog.Cancel
         width: 400
+        height:240
         visible: false
-
-        x: (parent.width - width) / 2
-        y: (parent.height - height) / 2
 
         Column {
             spacing: 15
@@ -358,38 +357,25 @@ Item {
                 placeholderText: "Nom de la ruche"
                 font.pixelSize: 16
                 focus: true
-                onPressed: {
-                    Qt.inputMethod.show()
-                }
             }
 
-            TextField {
-                id: mqttAdresse
-                width: parent.width
-                placeholderText: "Adresse MQTT"
-                font.pixelSize: 16
-                onPressed: {
-                    Qt.inputMethod.show()
-                }
-            }
         }
 
         onAccepted: {
-            if (rucheName.text.trim() && mqttAdresse.text.trim()) {
-                var rucheId = dManager.addOrUpdateRuche(rucheName.text, mqttAdresse.text);
+            if (rucheName.text.trim()) {
+                var mqttAdresse = "v3/tp-lorawan-2024@ttn/devices/" +rucheName.text +"/up"
+                var rucheId = rucheManager.addOrUpdateRuche(rucheName.text, mqttAdresse);
                 if (rucheId > 0) {
                     var nouvelleRuche = RucheManager.createRuche(mqttAdresse.text);
-                    nouvelleRuche.setId(rucheId);
-                    nouvelleRuche.setName(rucheName.text);
-                    RucheManager.addRuche(nouvelleRuche);
-                    showSuccess("La ruche \"" + rucheName.text + "\" a été ajoutée avec succès.");
+                    RucheManager.updateRucheInfo(rucheId, rucheName.text, mqttAdresse.text);
                     refreshRuchesList();
+
+                    statusMessage.show("La ruche \"" + rucheName.text + "\" a été ajoutée avec succès.", "success");
                 } else {
-                    showError("Erreur lors de l'ajout de la ruche.");
+                    statusMessage.show("Erreur lors de l'ajout de la ruche.", "error");
                 }
             } else {
-                showError("Veuillez remplir tous les champs.");
-                // Réouvrir le popup
+                statusMessage.show("Veuillez remplir tous les champs.", "error");
                 Qt.callLater(function() {
                     popup.open();
                 });
@@ -409,8 +395,8 @@ Item {
         property int rucheId: -1
         property string rucheName: ""
 
-        x: (parent.width - width) / 2
-        y: (parent.height - height) / 2
+        parent: Overlay.overlay
+        z: 90
 
         Text {
             width: parent.width
@@ -421,79 +407,13 @@ Item {
 
         onAccepted: {
             // Exécuter la suppression
-            var success = dManager.deleteRuche(confirmDeleteDialog.rucheId);
+            var success = rucheManager.deleteRuche(confirmDeleteDialog.rucheId);
             if (success) {
-                showSuccess("La ruche \"" + confirmDeleteDialog.rucheName + "\" a été supprimée avec succès.");
+                statusMessage.show("La ruche \"" + confirmDeleteDialog.rucheName + "\" a été supprimée avec succès.", "success");
                 refreshRuchesList();
             } else {
-                showError("Erreur lors de la suppression de la ruche.");
+                statusMessage.show("Erreur lors de la suppression de la ruche.", "error");
             }
         }
-    }
-
-    // Gérer les notifications
-    Rectangle {
-        id: successMessage
-        visible: false
-        color: "#4CAF50"
-        height: 50
-        width: parent.width
-        anchors.bottom: parent.bottom
-        opacity: 0.9
-        z: 100
-
-        Text {
-            id: successText
-            anchors.centerIn: parent
-            color: "white"
-            font.pixelSize: 16
-            font.bold: true
-            text: ""
-        }
-
-        Timer {
-            id: successTimer
-            interval: 3000
-            onTriggered: successMessage.visible = false
-        }
-    }
-
-    Rectangle {
-        id: errorMessage
-        visible: false
-        color: "#F44336"
-        height: 50
-        width: parent.width
-        anchors.bottom: parent.bottom
-        opacity: 0.9
-        z: 100
-
-        Text {
-            id: errorText
-            anchors.centerIn: parent
-            color: "white"
-            font.pixelSize: 16
-            font.bold: true
-            text: ""
-        }
-
-        Timer {
-            id: errorTimer
-            interval: 3000
-            onTriggered: errorMessage.visible = false
-        }
-    }
-
-    // Fonctions pour afficher les notifications
-    onShowSuccess: function(message) {
-        successText.text = message;
-        successMessage.visible = true;
-        successTimer.restart();
-    }
-
-    onShowError: function(message) {
-        errorText.text = message;
-        errorMessage.visible = true;
-        errorTimer.restart();
     }
 }

@@ -1,11 +1,16 @@
-#include "datamanager.h"
+#include "UserDataManager.h"
+#include "qtbcrypt.h"
 
-bool dataManager::authentification(QString a, QString b)
+UserDataManager::UserDataManager(QObject *parent) : dataManager(parent)
+{
+    // Initialisation spécifique pour UserDataManager
+}
+
+bool UserDataManager::authentification(QString a, QString b)
 {
     if (!db.isOpen()) {
         connectDB();
     }
-
     QSqlQuery query;
     query.prepare("SELECT password, grade FROM compte WHERE identifiant = :id");
     query.bindValue(":id", a);
@@ -14,12 +19,15 @@ bool dataManager::authentification(QString a, QString b)
         qWarning() << "Erreur SQL:" << query.lastError().text();
         return false;
     }
-
     if (query.next()) {
-        QString storedPassword = query.value(0).toString();
+        QString storedHashedPassword = query.value(0).toString();
         int grade = query.value(1).toInt();
 
-        if (b == storedPassword) {
+        // Utilisation de BCrypt pour vérifier le mot de passe
+        // Le sel est inclus dans le hash stocké, donc pas besoin de le récupérer séparément
+        QString hashedInputPassword = QtBCrypt::hashPassword(b, storedHashedPassword);
+
+        if (hashedInputPassword == storedHashedPassword) {
             if (grade > 1) {
                 qDebug() << "✅ Authentification réussie pour ID:" << a;
                 return true;
@@ -35,7 +43,7 @@ bool dataManager::authentification(QString a, QString b)
     return false;
 }
 
-bool dataManager::is_superadmin(QString a)
+bool UserDataManager::is_superadmin(QString a)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -62,24 +70,27 @@ bool dataManager::is_superadmin(QString a)
     return false;
 }
 
-void dataManager::adduser(QString id, QString pw, int grade)
+void UserDataManager::adduser(QString id, QString pw, int grade)
 {
     if (!db.isOpen()) {
         connectDB();
     }
 
+    // Génération du sel et hachage du mot de passe avec BCrypt
+    QString salt = QtBCrypt::generateSalt();
+    QString hashedPassword = QtBCrypt::hashPassword(pw, salt);
+
     QSqlQuery query;
     query.prepare("INSERT INTO compte (identifiant, password, grade) VALUES (:id, :password, :grade)");
     query.bindValue(":id", id);
-    query.bindValue(":password", pw);
+    query.bindValue(":password", hashedPassword);  // Utilisation du mot de passe haché
     query.bindValue(":grade", grade);
-
     if (!query.exec()) {
         qDebug() << "Erreur lors de l'ajout de l'utilisateur:" << query.lastError().text();
     }
 }
 
-bool dataManager::verifUser(const QString& user)
+bool UserDataManager::verifUser(const QString& user)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -100,23 +111,26 @@ bool dataManager::verifUser(const QString& user)
 }
 
 
-void dataManager::modifpw(QString id, QString pw)
+void UserDataManager::modifpw(QString id, QString pw)
 {
     if (!db.isOpen()) {
         connectDB();
     }
 
+    // Génération du sel et hachage du mot de passe avec BCrypt
+    QString salt = QtBCrypt::generateSalt();
+    QString hashedPassword = QtBCrypt::hashPassword(pw, salt);
+
     QSqlQuery query;
     query.prepare("UPDATE compte SET password = :password WHERE identifiant = :id");
     query.bindValue(":id", id);
-    query.bindValue(":password", pw);
-
+    query.bindValue(":password", hashedPassword);  // Utilisation du mot de passe haché
     if (!query.exec()) {
         qDebug() << "Erreur lors de la modification du mot de passe:" << query.lastError().text();
     }
 }
 
-void dataManager::modifgrade(QString id, int grade)
+void UserDataManager::modifgrade(QString id, int grade)
 {
     if (!db.isOpen()) {
         connectDB();

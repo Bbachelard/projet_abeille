@@ -2,7 +2,12 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
-#include "datamanager.h"
+#include "dataManager.h"
+#include "RucheDataManager.h"
+#include "SensorDataManager.h"
+#include "AlerteDataManager.h"
+#include "UserDataManager.h"
+
 #include "MqttHandler.h"
 #include "configurateurruche.h"
 #include "data.h"
@@ -16,12 +21,19 @@ int main(int argc, char *argv[])
 #endif
     QGuiApplication app(argc, argv);
     QQmlApplicationEngine engine;
+
     dataManager dManager;
+    RucheDataManager rucheManager;
+    SensorDataManager sensorManager;
+    AlerteDataManager alerteManager;
+    UserDataManager userManager;
+
+
     configurateurRuche configurateur;
     dManager.connectDB();
-    MqttHandler mqttHandler(&configurateur, &dManager);
+    MqttHandler mqttHandler(&configurateur, &rucheManager, &sensorManager);
 
-    QVariantList ruchesList = dManager.getRuchesList();
+    QVariantList ruchesList = rucheManager.getRuchesList();
     for (int i = 0; i < ruchesList.size(); ++i) {
         QVariantMap rucheData = ruchesList[i].toMap();
 
@@ -29,13 +41,19 @@ int main(int argc, char *argv[])
         ruche->setId(rucheData["id_ruche"].toInt());
         ruche->setName(rucheData["name"].toString());
         ruche->setMqttAdresse(rucheData["adress"].toString());
-
         configurateur.addRuche(ruche);
     }
 
     qmlRegisterType<Ruche>("com.example.ruche", 1, 0, "Ruche");
     qmlRegisterSingletonInstance("com.example.ruche", 1, 0, "RucheManager", &configurateur);
     engine.rootContext()->setContextProperty("dManager", &dManager);
+    engine.rootContext()->setContextProperty("rucheManager", &rucheManager);
+    engine.rootContext()->setContextProperty("sensorManager", &sensorManager);
+    engine.rootContext()->setContextProperty("alerteManager", &alerteManager);
+    engine.rootContext()->setContextProperty("userManager", &alerteManager);
+
+
+    engine.rootContext()->setContextProperty("mqttHandler", &mqttHandler);
     mqttHandler.connectToBroker();
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));

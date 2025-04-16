@@ -15,7 +15,12 @@ SOURCES += \
         datamanager_capteur.cpp \
         datamanager_core.cpp \
         datamanager_ruche.cpp \
+        datamanger_alerte.cpp \
         main.cpp \
+        openwall_crypt/crypt_blowfish.c \
+        openwall_crypt/crypt_gensalt.c \
+        openwall_crypt/wrapper.c \
+        qtbcrypt.cpp \
         ruche.cpp
 
 RESOURCES += qml.qrc \
@@ -30,14 +35,24 @@ QML_DESIGNER_IMPORT_PATH =
 # Default rules for deployment.
 
 HEADERS += \
+    AlerteDataManager.h \
     MqttHandler.h \
+    RucheDataManager.h \
+    SensorDataManager.h \
+    UserDataManager.h \
     configurateurruche.h \
     data.h \
-    datamanager.h \
+    dataManager.h \
+    openwall_crypt/crypt.h \
+    openwall_crypt/crypt_blowfish.h \
+    openwall_crypt/crypt_gensalt.h \
+    openwall_crypt/ow-crypt.h \
+    qtbcrypt.h \
     ruche.h
 
 DISTFILES += \
-    ../../../../../media/benjy/BT-7274/cours/projets/projet ruche/design IHM/arressai.png
+    ../../../../../media/benjy/BT-7274/cours/projets/projet ruche/design IHM/arressai.png \
+    openwall_crypt/x86.S
 
 
 target.path = /home/pi/ruche_connectee

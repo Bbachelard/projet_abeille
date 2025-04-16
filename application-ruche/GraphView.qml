@@ -11,12 +11,16 @@ Item {
     property var chartData: []
     property string chartTitle: "Graphique"
     property string capteurType: ""
+    property string uniteMesure: ""  // Nouvelle propriété pour l'unité de mesure
     property var minDate: new Date()
     property var maxDate: new Date()
 
     // Propriétés pour le zoom et le déplacement
     property real zoomFactor: 1.0
     property real panOffset: 0
+
+    // Propriété pour contrôler l'affichage initial des 10 dernières valeurs
+    property bool initialPositionSet: false
 
     // Définir les graduations en fonction du type de capteur
     property var yAxisLabels: []
@@ -34,6 +38,7 @@ Item {
     // Fonction d'initialisation
     function initGraphValues() {
         // Définir les valeurs min/max et les graduations en fonction du type de capteur
+        // On utilise l'unité de mesure si disponible, sinon on se replie sur le type
         if (capteurType.toLowerCase().includes("température") || capteurType.toLowerCase().includes("temperature")) {
             minValue = -5;
             maxValue = 60;
@@ -48,14 +53,36 @@ Item {
             yAxisLabels = [0, 20, 40, 60, 80, 100];
         } else if (capteurType.toLowerCase().includes("pression")) {
             minValue = 900;
-            maxValue = 1100;
-            yAxisLabels = [900, 950, 1000, 1050, 1100];
+            maxValue = 1300;
+            yAxisLabels = [900, 1000, 1100,1200,1300];
         } else {
             // Valeurs par défaut ou calculées à partir des données
             calculateMinMaxFromData();
         }
 
+        // Positionner initialement sur les 10 dernières valeurs
+        setInitialPosition();
+
         chartCanvas.requestPaint();
+    }
+
+    // Fonction pour positionner le graphique sur les 10 dernières valeurs
+    function setInitialPosition() {
+        if (chartData && chartData.length > 0 && !initialPositionSet) {
+            // Calculer le nombre de valeurs à afficher initialement
+            var numValuesToShow = Math.min(10, chartData.length);
+
+            if (numValuesToShow < chartData.length) {
+                // Calculer le facteur de zoom nécessaire pour montrer seulement 10 valeurs
+                zoomFactor = chartData.length / numValuesToShow;
+
+                // Définir le décalage pour montrer les 10 dernières valeurs
+                panOffset = zoomFactor - 1;
+
+                // Marquer que la position initiale a été définie
+                initialPositionSet = true;
+            }
+        }
     }
 
     // Calculer min/max à partir des données
@@ -86,12 +113,20 @@ Item {
         }
     }
 
+    // Observer les changements de données pour positionner correctement lors du chargement
+    onChartDataChanged: {
+        if (chartData && chartData.length > 0) {
+            setInitialPosition();
+            chartCanvas.requestPaint();
+        }
+    }
+
     Column {
         anchors.fill: parent
         spacing: 10
 
         Text {
-            text: "Données du capteur: " + capteurType
+            text: "Données du capteur: " + capteurType + (uniteMesure ? " (" + uniteMesure + ")" : "")
             font.pixelSize: 18
             font.bold: true
             anchors.horizontalCenter: parent.horizontalCenter
@@ -156,6 +191,16 @@ Item {
                 onClicked: {
                     zoomFactor = 1.0;
                     panOffset = 0;
+                    initialPositionSet = false;
+                    chartCanvas.requestPaint();
+                }
+            }
+
+            Button {
+                text: "Dernières 10"
+                onClicked: {
+                    initialPositionSet = false;
+                    setInitialPosition();
                     chartCanvas.requestPaint();
                 }
             }
@@ -216,14 +261,20 @@ Item {
                         ctx.stroke();
                         ctx.setLineDash([]);
 
-                        // Étiquette de valeur
+                        // Étiquette de valeur avec unité de mesure
                         var valueLabel = labelValue.toString();
-                        if (capteurType.toLowerCase().includes("température")) {
-                            valueLabel += "°C";
-                        } else if (capteurType.toLowerCase().includes("humidité")) {
-                            valueLabel += "%";
-                        } else if (capteurType.toLowerCase().includes("pression")) {
-                            valueLabel += " hPa";
+                        // Utiliser l'unité de mesure de la base de données si disponible
+                        if (uniteMesure) {
+                            valueLabel += " " + uniteMesure;
+                        } else {
+                            // Fallback vers l'ancienne méthode
+                            if (capteurType.toLowerCase().includes("température")) {
+                                valueLabel += "°C";
+                            } else if (capteurType.toLowerCase().includes("humidité")) {
+                                valueLabel += "%";
+                            } else if (capteurType.toLowerCase().includes("pression")) {
+                                valueLabel += " hPa";
+                            }
                         }
                         ctx.fillText(valueLabel, -40, y + 4);
                     }
@@ -323,9 +374,16 @@ Item {
                                         ctx.arc(ptX, ptY, 4, 0, 2 * Math.PI);
                                         ctx.fill();
 
-                                        // Afficher la valeur au-dessus du point
+                                        // Afficher la valeur au-dessus du point avec unité de mesure
                                         ctx.fillStyle = "black";
-                                        ctx.fillText(dataPoint.valeur.toFixed(1), ptX - 10, ptY - 10);
+                                        var pointLabel = dataPoint.valeur.toFixed(1);
+                                        // Ajouter l'unité sur chaque point si disponible
+                                        if (dataPoint.unite_mesure) {
+                                            pointLabel += " " + dataPoint.unite_mesure;
+                                        } else if (uniteMesure) {
+                                            pointLabel += " " + uniteMesure;
+                                        }
+                                        ctx.fillText(pointLabel, ptX - 15, ptY - 10);
                                         ctx.fillStyle = color; // Remettre la couleur pour le prochain point
                                     }
                                 }
@@ -389,9 +447,16 @@ Item {
                                     ctx.arc(ptX, ptY, 4, 0, 2 * Math.PI);
                                     ctx.fill();
 
-                                    // Ajouter un texte avec la valeur
+                                    // Ajouter un texte avec la valeur et l'unité de mesure
                                     ctx.fillStyle = "black";
-                                    ctx.fillText(pt.valeur.toFixed(1), ptX - 10, ptY - 10);
+                                    var valeurTexte = pt.valeur.toFixed(1);
+                                    // Utiliser l'unité de mesure du point si disponible, sinon celle du graphique
+                                    if (pt.unite_mesure) {
+                                        valeurTexte += " " + pt.unite_mesure;
+                                    } else if (uniteMesure) {
+                                        valeurTexte += " " + uniteMesure;
+                                    }
+                                    ctx.fillText(valeurTexte, ptX - 15, ptY - 10);
                                     ctx.fillStyle = "#3366cc"; // Remettre la bonne couleur
                                 }
                             }
@@ -433,19 +498,25 @@ Item {
                 }
             }
 
-            // Titre axe Y
+            // Titre axe Y avec unité de mesure
             Text {
                 text: {
-                    if (capteurType.toLowerCase().includes("température")) {
-                        return "Température (°C)";
-                    } else if (capteurType.toLowerCase().includes("humidité")) {
-                        return "Humidité (%)";
-                    } else if (capteurType.toLowerCase().includes("poids")) {
-                        return "Poids (kg)";
-                    } else if (capteurType.toLowerCase().includes("pression")) {
-                        return "Pression (hPa)";
+                    if (uniteMesure) {
+                        // Utiliser l'unité de mesure de la base de données
+                        return capteurType + " (" + uniteMesure + ")";
+                    } else {
+                        // Fallback vers l'ancienne méthode
+                        if (capteurType.toLowerCase().includes("température")) {
+                            return "Température (°C)";
+                        } else if (capteurType.toLowerCase().includes("humidité")) {
+                            return "Humidité (%)";
+                        } else if (capteurType.toLowerCase().includes("poids") || capteurType.toLowerCase().includes("masse")) {
+                            return "Poids (kg)";
+                        } else if (capteurType.toLowerCase().includes("pression")) {
+                            return "Pression (hPa)";
+                        }
+                        return "Valeur";
                     }
-                    return "Valeur";
                 }
                 anchors.left: parent.left
                 anchors.leftMargin: 5

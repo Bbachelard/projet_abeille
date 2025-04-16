@@ -1,7 +1,52 @@
-#include "datamanager.h"
-#include <QFile>
+#include "RucheDataManager.h"
+#include <QFileInfo>
 
-int dataManager::addOrUpdateRuche(const QString &name, const QString &adress, double batterie)
+RucheDataManager::RucheDataManager(QObject *parent) : dataManager(parent)
+{
+
+}
+
+QVariantList RucheDataManager::getRucheData(int id_ruche)
+{
+    QVariantList capteursList;
+    if (!db.isOpen()) {
+        connectDB();
+    }
+    QString queryString = R"(
+        SELECT c.id_capteur, c.type, c.localisation, c.description, c.mesure, d.valeur, d.date_mesure, r.seuil_miel
+        FROM capteurs c
+        LEFT JOIN donnees d ON c.id_capteur = d.id_capteur
+        LEFT JOIN ruche r ON d.id_ruche = r.id_ruche
+        WHERE d.id_ruche = :id_ruche AND d.date_mesure = (
+            SELECT MAX(d2.date_mesure) FROM donnees d2
+            WHERE d2.id_capteur = c.id_capteur AND d2.id_ruche = :id_ruche
+        )
+        ORDER BY c.id_capteur;
+    )";
+    QSqlQuery query;
+    query.prepare(queryString);
+    query.bindValue(":id_ruche", id_ruche);
+    if (!query.exec()) {
+        qDebug() << "Erreur lors de la récupération des données de la ruche:" << query.lastError().text();
+        return capteursList;
+    }
+    while (query.next()) {
+        QVariantMap capteur;
+        capteur["id_capteur"] = query.value("id_capteur").toInt();
+        capteur["type"] = query.value("type").toString();
+        capteur["localisation"] = query.value("localisation").toString();
+        capteur["description"] = query.value("description").toString();
+        capteur["mesure"] = query.value("mesure").toString();
+        capteur["valeur"] = query.value("valeur").toFloat();
+        capteur["date_mesure"] = query.value("date_mesure").toString();
+        capteur["seuil_miel"] = query.value("seuil_miel").toFloat();
+        capteursList.append(capteur);
+    }
+
+    return capteursList;
+}
+
+int RucheDataManager::addOrUpdateRuche(const QString &name, const QString &adress, double batterie)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -38,7 +83,7 @@ int dataManager::addOrUpdateRuche(const QString &name, const QString &adress, do
     }
 }
 
-bool dataManager::updateRucheBatterie(int rucheId, double batterie)
+bool RucheDataManager::updateRucheBatterie(int rucheId, double batterie)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -51,11 +96,11 @@ bool dataManager::updateRucheBatterie(int rucheId, double batterie)
         qDebug() << "Erreur lors de la mise à jour de la batterie:" << query.lastError().text();
         return false;
     }
-
+    emit batteryUpdated(rucheId, batterie);
     return true;
 }
 
-QVariantList dataManager::getRuchesList()
+QVariantList RucheDataManager::getRuchesList()
 {
     QVariantList ruchesList;
 
@@ -79,7 +124,7 @@ QVariantList dataManager::getRuchesList()
     return ruchesList;
 }
 
-bool dataManager::deleteRuche(int rucheId)
+bool RucheDataManager::deleteRuche(int rucheId)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -116,7 +161,7 @@ bool dataManager::deleteRuche(int rucheId)
     return true;
 }
 
-QVariantList dataManager::getRucheImages(int rucheId)
+QVariantList RucheDataManager::getRucheImages(int rucheId)
 {
     QVariantList results;
 
@@ -151,7 +196,7 @@ QVariantList dataManager::getRucheImages(int rucheId)
     return results;
 }
 
-bool dataManager::addImage(int idImage, int idRuche, const QString& cheminFichier, const QString& dateCapture)
+bool RucheDataManager::addImage(int idImage, int idRuche, const QString& cheminFichier, const QString& dateCapture)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -189,7 +234,7 @@ bool dataManager::addImage(int idImage, int idRuche, const QString& cheminFichie
 }
 
 
-bool dataManager::deleteImage(int imageId, const QString& cheminFichier)
+bool RucheDataManager::deleteImage(int imageId, const QString& cheminFichier)
 {
     if (!db.isOpen()) {
         connectDB();
@@ -206,28 +251,26 @@ bool dataManager::deleteImage(int imageId, const QString& cheminFichier)
         db.rollback();
         return false;
     }
-
-    QString cheminComplet;
-    cheminComplet = cheminFichier;
-
-    QFile file(cheminComplet);
-    bool fileDeleted = true;
-    if (!file.exists()) {
-        qDebug() << "Le fichier n'existe pas:" << cheminComplet;
-    } else {
-        QString cmd = QString("sudo rm -rf \"%1\"").arg(cheminComplet);
-        system(cmd.toUtf8().constData());
-    }
+    QString cheminAbsolu = QFileInfo("deleteimage.sh").absoluteFilePath();
+    qDebug() << "Chemin absolu du script:" << cheminAbsolu;
+    QString scriptCmd = QString("/bin/sh %1 %2 skip_db").arg(cheminAbsolu).arg(cheminFichier);
+    qDebug() << "Exécution de la commande:" << scriptCmd;
+    int scriptResult = system(scriptCmd.toUtf8().constData());
+    bool fileDeleted = (scriptResult == 0);
+    // Valider la transaction
     if (!db.commit()) {
         qDebug() << "Erreur lors de la validation de la transaction:" << db.lastError().text();
         db.rollback();
         return false;
     }
+    // Journalisation du résultat
     if (fileDeleted) {
-        qDebug() << "Image supprimée avec succès. ID:" << imageId << "Chemin:" << cheminComplet;
+        qDebug() << "Image supprimée avec succès. ID:" << imageId
+                 << "Fichier:" << cheminFichier;
     } else {
-        qDebug() << "Image supprimée de la BDD, mais le fichier n'a pas pu être supprimé. ID:" << imageId << "Chemin:" << cheminComplet;
+        qDebug() << "Image supprimée de la BDD, mais erreur lors de l'exécution du script. ID:" << imageId
+                 << "Fichier:" << cheminFichier
+                 << "Code retour:" << scriptResult;
     }
-
     return true;
 }

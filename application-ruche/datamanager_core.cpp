@@ -1,4 +1,4 @@
-#include "datamanager.h"
+#include "dataManager.h"
 #include <QProcess>
 #include <QDebug>
 #include <QFile>
@@ -52,9 +52,6 @@ QString dataManager::executeShellCommand(const QString &command)
     // Récupérer la sortie
     QString output = QString::fromUtf8(process.readAllStandardOutput());
     QString error = QString::fromUtf8(process.readAllStandardError());
-
-    qDebug() << "Sortie standard:" << output;
-    qDebug() << "Sortie d'erreur:" << error;
 
     // Retourner le résultat
     if (process.exitCode() == 0) {

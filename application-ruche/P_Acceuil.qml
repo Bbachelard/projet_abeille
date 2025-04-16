@@ -53,13 +53,14 @@ Item {
             }
         }
         Button{
-            text:"suprrra"
+            text:"test"
             width: 200
             height: 50
             onClicked: {
                 livre.push("P_SAView.qml")
             }
         }
-}}
+    }
+}
 
 

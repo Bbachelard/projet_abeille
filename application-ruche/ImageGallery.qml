@@ -33,7 +33,7 @@ Item {
             return;
         }
 
-        var images = dManager.getRucheImages(rucheId);
+        var images = rucheManager.getRucheImages(rucheId);
 
         imagesModel.clear();
         for (var i = 0; i < images.length; i++) {
@@ -43,7 +43,6 @@ Item {
                 "date": images[i].date_capture
             });
         }
-
         console.log("Images chargées:", imagesModel.count);
     }
 
@@ -59,101 +58,89 @@ Item {
     function importerImages() {
         if (typeof dManager !== "undefined" && typeof dManager.executeShellCommand === "function") {
             importInProgress = true;
-            statusMessage = "Importation en cours...";
-            statusType = "info";
-
-            // Appelez la fonction C++ exposée
+            statusPopup.show("Importation en cours...", "info");
             var command = "/home/pi/sync_images.sh " + rucheId;
             var result = dManager.executeShellCommand(command);
             console.log("Résultat de l'exécution du script:", result);
+            var message = "";
+            var type = "info";
 
-            // Analyser le résultat pour afficher un message approprié
-            if (result.startsWith("Succès:")) {
+            // Aucun périphérique n'est détecté
+            if (result.includes("Aucun périphérique de stockage externe détecté")) {
+                message = "Aucun périphérique de stockage connecté";
+                type = "warning";
+            }
+            // Impossibilité de montage
+            else if (result.includes("Impossible de monter le périphérique de stockage")) {
+                message = "Impossible de lire le périphérique de stockage";
+                type = "error";
+            }
+            else if (result.startsWith("Succès:") || !result.includes("Erreur:")) {
                 if (result.includes("Carte SD montée avec succès")) {
-                    // Analyser le nombre d'images traitées
+                    // Nombre d'images traitées
                     var match = result.match(/(\d+) nouvelles images traitées/);
                     if (match && match[1]) {
                         var nbImages = parseInt(match[1]);
                         if (nbImages > 0) {
-                            statusMessage = nbImages + " nouvelle(s) image(s) importée(s) avec succès";
-                            statusType = "success";
+                            message = nbImages + " nouvelle(s) image(s) importée(s) avec succès";
+                            type = "success";
                         } else {
-                            statusMessage = "Toutes les images sont déjà importées";
-                            statusType = "info";
+                            message = "Toutes les images sont déjà importées";
+                            type = "info";
                         }
                     } else {
-                        statusMessage = "Importation terminée avec succès";
-                        statusType = "success";
+                        message = "Importation terminée avec succès";
+                        type = "success";
                     }
-                } else if (result.includes("Aucune carte SD détectée")) {
-                    statusMessage = "Aucune carte SD insérée";
-                    statusType = "warning";
+                } else if (result.includes("Aucune carte SD détectée") || result.includes("Aucun périphérique de stockage externe détecté")) {
+                    message = "Aucun périphérique de stockage connecté";
+                    type = "warning";
                 } else if (result.includes("Les dossiers sont déjà synchronisés")) {
-                    statusMessage = "Toutes les images sont déjà synchronisées";
-                    statusType = "info";
+                    message = "Toutes les images sont déjà synchronisées";
+                    type = "info";
+                } else if (result.includes("Synchronisation terminée avec succès")) {
+                    message = "Importation terminée avec succès";
+                    type = "success";
                 } else {
-                    statusMessage = "Importation terminée avec succès";
-                    statusType = "success";
+                    message = "Importation terminée";
+                    type = "info";
                 }
             } else {
                 if (result.includes("special device /dev/sda1 does not exist")) {
-                    statusMessage = "Aucune carte SD insérée";
-                    statusType = "warning";
+                    message = "Aucun périphérique de stockage connecté";
+                    type = "warning";
                 } else {
-                    statusMessage = "Erreur lors de l'importation";
-                    statusType = "error";
+                    message = "Erreur lors de l'importation";
+                    type = "error";
                 }
             }
 
             importInProgress = false;
-
-            // Reload images after import
+            // Recharger les images après l'importation
             chargerImages();
-
-            // Afficher le popup avec le message de statut
-            statusPopup.open();
-
-            // Masquer automatiquement le message après un délai
-            statusTimer.restart();
+            // Afficher le message de statut
+            statusPopup.show(message, type);
         } else {
             console.error("La fonction executeShellCommand n'est pas disponible dans dManager");
-            statusMessage = "Erreur: fonction d'importation non disponible";
-            statusType = "error";
-            statusPopup.open();
+            statusPopup.show("Erreur: fonction d'importation non disponible", "error");
         }
     }
     function supprimerImage(imageId, cheminImage) {
         console.log("Suppression de l'image:", imageId, "chemin:", cheminImage);
 
-        if (typeof dManager !== "undefined" && typeof dManager.deleteImage === "function") {
-            var result = dManager.deleteImage(imageId, cheminImage);
+        if (typeof rucheManager !== "undefined" && typeof rucheManager.deleteImage === "function") {
+            var result = rucheManager.deleteImage(imageId, cheminImage);
             if (result) {
                 chargerImages();
-                statusMessage = "Image supprimée avec succès";
-                statusType = "success";
-                statusPopup.open();
-                statusTimer.restart();
+                statusPopup.show("Image supprimée avec succès", "success");
             } else {
-                statusMessage = "Erreur lors de la suppression de l'image";
-                statusType = "error";
-                statusPopup.open();
-                statusTimer.restart();
+                statusPopup.show("Erreur lors de la suppression de l'image", "error");
             }
         } else {
             console.error("La fonction deleteImage n'est pas disponible dans dManager");
-            statusMessage = "Erreur: fonction de suppression non disponible";
-            statusType = "error";
-            statusPopup.open();
+            statusPopup.show("Erreur: fonction de suppression non disponible", "error");
         }
     }
-    Timer {
-        id: statusTimer
-        interval: 2500
-        onTriggered: {
-            statusPopup.close();
-        }
-    }
-
 
     // Interface
     Column {
@@ -169,11 +156,9 @@ Item {
             RowLayout {
                 anchors.fill: parent
                 spacing: 10
-
-                Item { // Spacer
+                Item {
                     Layout.fillWidth: true
                 }
-
                 Text {
                     text: "Galerie d'images"
                     font.pixelSize: 18
@@ -273,32 +258,13 @@ Item {
                                 color: "red"
                             }
                         }
-                        Rectangle {
-                            id: deleteButton
-                            visible: isAdmin
-                            width: 30
-                            height: 30
-                            radius: 15
-                            color: "#80000000"
-                            anchors.right: parent.right
-                            anchors.top: parent.top
-                            anchors.margins: 5
 
-                            Text {
-                                anchors.centerIn: parent
-                                text: "✕"
-                                color: "white"
-                                font.pixelSize: 16
-                                font.bold: true
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: {
-                                    confirmDeletePopup.imageId = model.id;
-                                    confirmDeletePopup.imagePath = model.chemin;
-                                    confirmDeletePopup.open();
-                                }
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                confirmDeletePopup.imageId = model.id;
+                                confirmDeletePopup.imagePath = model.chemin;
+                                confirmDeletePopup.open();
                             }
                         }
                         MouseArea {
@@ -351,7 +317,7 @@ Item {
         contentItem: Item {
             Image {
                 anchors.fill: parent
-                source: "file://" + popupImage.imageSource
+                source: popupImage.imageSource ? "file://" + popupImage.imageSource : ""
                 fillMode: Image.PreserveAspectFit
 
                 Rectangle {
@@ -397,9 +363,9 @@ Item {
                 anchors.left: parent.left
                 anchors.top: parent.top
                 anchors.margins: 10
-                width: 30
+                width: 50
                 height: 30
-                radius: 15
+                radius: 2
                 color: "#80FF0000"  // Rouge avec 50% d'opacité
 
                 Text {
@@ -494,53 +460,7 @@ Item {
     }
 
     // Popup de succès d'importation
-    Popup {
+    StatusPopup {
         id: statusPopup
-        width: Math.min(parent.width * 0.8, statusText.width + 60)
-        height: statusText.height + 40
-        modal: false
-        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-
-        // Position en haut et centrée
-        x: (parent.width - width) / 2
-        y: 10
-
-        background: Rectangle {
-            color: {
-                switch(statusType) {
-                    case "success": return "#e8f5e9";  // Vert clair
-                    case "warning": return "#fff8e1";  // Jaune clair
-                    case "error": return "#ffebee";    // Rouge clair
-                    default: return "#e3f2fd";         // Bleu clair (info)
-                }
-            }
-            border.color: {
-                switch(statusType) {
-                    case "success": return "#4caf50";  // Vert
-                    case "warning": return "#ff9800";  // Orange
-                    case "error": return "#f44336";    // Rouge
-                    default: return "#2196f3";         // Bleu (info)
-                }
-            }
-            border.width: 1
-            radius: 5
-        }
-
-        contentItem: Item {
-            Text {
-                id: statusText
-                anchors.centerIn: parent
-                text: statusMessage
-                font.pixelSize: 14
-                color: {
-                    switch(statusType) {
-                        case "success": return "#2e7d32";  // Vert foncé
-                        case "warning": return "#e65100";  // Orange foncé
-                        case "error": return "#b71c1c";    // Rouge foncé
-                        default: return "#0d47a1";         // Bleu foncé (info)
-                    }
-                }
-            }
-        }
     }
 }

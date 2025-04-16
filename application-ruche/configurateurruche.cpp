@@ -66,11 +66,30 @@ Ruche* configurateurRuche::createRuche(const QString& mqttAdresse)
 {
     Ruche* newRuche = new Ruche(this);
     newRuche->setMqttAdresse(mqttAdresse);
+    // Pas besoin d'exposer setId et setName à QML, car on les appelle ici
     // L'ID sera défini lors de l'ajout à la base de données
-
-    // Nous n'ajoutons pas la ruche directement au configurateur
-    // car elle sera ajoutée après avoir été enregistrée en BDD
-
     qDebug() << "Nouvelle ruche créée avec adresse MQTT: " << mqttAdresse;
+
+    // Ajouter directement la ruche au gestionnaire
+    // addRuche(newRuche);  // Décommentez si vous voulez l'ajouter automatiquement
+
     return newRuche;
+}
+
+
+void configurateurRuche::updateRucheInfo(int id, const QString& name, const QString& mqttAdresse)
+{
+    Ruche* ruche = getRucheById(id);
+    if (!ruche) {
+        // Si la ruche n'existe pas encore, créez-la
+        ruche = new Ruche(this);
+        ruche->setId(id);
+        ruche->setName(name);
+        ruche->setMqttAdresse(mqttAdresse);
+        addRuche(ruche);
+    } else {
+        // Mettre à jour une ruche existante
+        ruche->setName(name);
+        ruche->setMqttAdresse(mqttAdresse);
+    }
 }
