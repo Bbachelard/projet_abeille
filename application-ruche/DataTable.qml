@@ -122,11 +122,6 @@ Item {
                     updateTableModel();
                 }
             }
-
-            Button {
-                text: "actualiser"
-                onClicked: updateTableModel()
-            }
         }
 
         Rectangle {

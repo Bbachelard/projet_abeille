@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import Qt.labs.settings 1.0
 
 Item {
     id: capteursListRoot
@@ -116,24 +117,38 @@ Item {
         }
     }
 
+
     Column {
         anchors.fill: parent
         spacing: 10
+        anchors.leftMargin: 30
 
+        Row {
+            width: parent.width
+            height: 40
+            spacing: 100
+            anchors.horizontalCenter: parent.horizontalCenter
 
-
-        Item {
-               width: parent.width
-               height: 40
-
-                Text {
-                    text: "Liste des capteurs"
-                    font.pixelSize: 18
-                    font.bold: true
-                    anchors.horizontalCenter: parent.horizontalCenter
+            Button {
+                text: "Définir intervalle"
+                width: 200
+                height: 30
+                anchors.verticalCenter: parent.verticalCenter
+                onClicked: {
+                    heuresSpinBox.value = intervalSettings.savedHeures
+                    minutesSpinBox.value = intervalSettings.savedMinutes
+                    intervalPopup.open()
                 }
+            }
 
+            Text {
+                text: "Liste des capteurs"
+                font.pixelSize: 18
+                font.bold: true
+                anchors.verticalCenter: parent.verticalCenter
+            }
         }
+
 
         ListView {
             id: capteursListView
