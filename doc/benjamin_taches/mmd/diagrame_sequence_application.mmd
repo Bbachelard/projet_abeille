@@ -1,0 +1,88 @@
+---
+config:
+  theme: forest
+---
+sequenceDiagram
+    actor Utilisateur
+    participant UI as QMLInterface
+    participant Auth as dataManager_auth
+    participant ConfigRuche as configurateurRuche
+    participant DMRuche as dataManager_ruche
+    participant DMCapteur as dataManager_capteur
+    participant DMAlertes as dataManager_alerte
+    participant DMUser as dataManager_auth
+    participant Ruche as Ruche
+    participant MQTT as MqttHandler
+    Utilisateur->>UI: Sélectionne type d'utilisateur
+    alt Utilisateur standard
+        note over Utilisateur,UI: Accès direct sans authentification
+        UI->>DMRuche: getRuchesList()
+        DMRuche-->>UI: QVariantList (ruches)
+        UI-->>Utilisateur: Affichage liste des ruches
+        Utilisateur->>UI: Sélectionne une ruche
+        UI->>ConfigRuche: getRucheById(id)
+        ConfigRuche-->>UI: Ruche*
+        Utilisateur->>UI: Sélectionne "Voir capteurs"
+        UI->>DMCapteur: getLastCapteurValue(rucheId, capteurId)
+        DMCapteur-->>UI: Dernières valeurs des capteurs
+        UI-->>Utilisateur: Affichage capteurs
+        Utilisateur->>UI: Sélectionne "Voir graphiques"
+        UI->>DMCapteur: getCapteurGraphData(rucheId, capteurId)
+        DMCapteur-->>UI: QVariantList (données du graphique)
+        UI-->>Utilisateur: Affichage du graphique
+        Utilisateur->>UI: Sélectionne "Gérer images"
+        UI->>DMRuche: getRucheImages(rucheId)
+        DMRuche-->>UI: QVariantList (chemins des images)
+        UI-->>Utilisateur: Affichage galerie d'images
+    else Administrateur ou Super-administrateur
+        Utilisateur->>UI: Saisit identifiants
+        UI->>Auth: authentification(username, password)
+        Auth-->>UI: Résultat authentification
+        alt Authentification échouée
+            UI-->>Utilisateur: Message d'erreur
+        else Authentification réussie
+            UI->>Auth: is_superadmin(username)
+            Auth-->>UI: Statut (admin ou superadmin)
+            UI-->>Utilisateur: Affiche options d'admin
+            alt Fonctionnalités administrateur (accessibles à Admin et SuperAdmin)
+                Utilisateur->>UI: Ajouter/Supprimer ruche
+                UI->>DMRuche: addOrUpdateRuche(name, mqttAdresse, batterie)
+                DMRuche-->>UI: ID de la ruche ajoutée
+                Utilisateur->>UI: Accède au paramétrage des alertes
+                UI->>DMAlertes: getAllAlertes()
+                DMAlertes-->>UI: Liste des alertes
+                UI-->>Utilisateur: Affichage table des alertes
+                Utilisateur->>UI: Ajoute/Modifie/Supprime alerte
+                UI->>DMAlertes: addAlerte(capteurId, nom, description, seuil, type, rucheId, active)
+                DMAlertes-->>UI: Résultat opération
+                Utilisateur->>UI: Supprime une image
+                UI->>DMRuche: deleteImage(rucheId, imagePath)
+                DMRuche-->>UI: Résultat suppression
+            end
+            alt Fonctionnalités super-administrateur (uniquement SuperAdmin)
+                Utilisateur->>UI: Gestion des utilisateurs
+                UI-->>Utilisateur: Affiche options gestion utilisateurs
+                Utilisateur->>UI: Créer utilisateur
+                UI->>DMUser: adduser(username, password, grade)
+                DMUser-->>UI: Résultat opération
+                Utilisateur->>UI: Supprimer utilisateur
+                UI->>DMUser: verifUser(username)
+                DMUser-->>UI: Utilisateur existe
+                UI->>DMUser: suppressionUtilisateur(username)
+                DMUser-->>UI: Résultat opération
+                Utilisateur->>UI: Modifier mot de passe
+                UI->>DMUser: modifpw(username, newPassword)
+                DMUser-->>UI: Résultat opération
+                Utilisateur->>UI: Modifier grade
+                UI->>DMUser: modifgrade(username, newGrade)
+                DMUser-->>UI: Résultat opération
+            end
+        end
+    end
+    note over UI,MQTT: Mise à jour en temps réel pour tous les utilisateurs
+    MQTT->>UI: Notification données mises à jour
+    UI->>ConfigRuche: getRucheById(id)
+    ConfigRuche->>Ruche: setData(temp, hum, mass, press, img, datetime)
+    Ruche-->>ConfigRuche: Confirmation mise à jour
+    ConfigRuche-->>UI: Confirmation mise à jour
+    UI-->>Utilisateur: Affichage données à jour

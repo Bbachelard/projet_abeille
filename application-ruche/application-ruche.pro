@@ -17,6 +17,7 @@ SOURCES += \
         datamanager_ruche.cpp \
         datamanger_alerte.cpp \
         main.cpp \
+        qtbcrypt.cpp \
         ruche.cpp
 
 RESOURCES += qml.qrc \
@@ -37,8 +38,11 @@ HEADERS += \
     SensorDataManager.h \
     UserDataManager.h \
     configurateurruche.h \
+    crypt.h \
     data.h \
     dataManager.h \
+    ow-crypt.h \
+    qtbcrypt.h \
     ruche.h
 
 DISTFILES += \

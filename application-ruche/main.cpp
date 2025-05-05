@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("rucheManager", &rucheManager);
     engine.rootContext()->setContextProperty("sensorManager", &sensorManager);
     engine.rootContext()->setContextProperty("alerteManager", &alerteManager);
-    engine.rootContext()->setContextProperty("userManager", &alerteManager);
+    engine.rootContext()->setContextProperty("userManager", &userManager);
 
 
     engine.rootContext()->setContextProperty("mqttHandler", &mqttHandler);

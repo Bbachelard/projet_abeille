@@ -26,6 +26,11 @@ Item {
             livre.pop()
         }
     }
+    Timer {
+        id: hideError
+        interval: 3000
+        onTriggered: errorMessage.visible = false
+    }
 
 
                     Column {
@@ -56,7 +61,8 @@ Item {
                             x:+300
                             width: 200
                             height: 40
-                            onClicked: modif_grade.open()
+                            onClicked:{ modif_grade.parent = Overlay.overlay
+                            modif_grade.open()}
                         }
                     }
                 Popup {
@@ -69,7 +75,15 @@ Item {
                         parent: Overlay.overlay
                         z: 2000
                         anchors.centerIn: page.top
-
+                        Text {
+                            id: errorMessage
+                            text: ""
+                            color: "yellow"
+                            font.pixelSize: 18
+                            font.bold: true
+                            anchors.centerIn: parent
+                            visible: false
+                        }
                         Column{
                             anchors.centerIn: parent
                             width: parent.width
@@ -116,8 +130,65 @@ Item {
                                 anchors.bottom: parent
                                 width: 200
                                 height: 40
-                                onClicked: create_user.open()}
+                                onClicked:if (usernameField.text === "" || passwordField.text === "" || gradeField.text === "") {
+                                              console.log("Veuillez remplir tous les champs.");
+                                              errorMessage.text = "Veuillez remplir tous les champs";
+                                              errorMessage.visible = true;
+                                              hideError.start();
+                                          } else {
+                                              add_o.open();
+                                          }
+                            }
                         }
+                        Popup {
+                            id: add_o
+                            width: 450
+                            height: 200
+                            modal: true
+                            focus: true
+                            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+                            parent: Overlay.overlay
+                            z: 3000  // Z supérieur à celui de create_user (2000) pour s'afficher devant
+                            anchors.centerIn: parent  // Centre la popup dans son parent
+
+                            Column {
+                                anchors.centerIn: parent
+                                width: parent.width - 40  // Marge sur les côtés
+                                spacing: 20
+
+                                Text {
+                                    id: name
+                                    width: parent.width
+                                    text: qsTr("Êtes-vous sûr de vouloir ajouter cet utilisateur ?")
+                                    horizontalAlignment: Text.AlignHCenter  // Centre le texte horizontalement
+                                    font.pixelSize: 16
+                                }
+
+                                Row {
+                                    spacing: 20
+                                    anchors.horizontalCenter: parent.horizontalCenter  // Centre les boutons
+
+                                    Button {
+                                        text: "Oui"
+                                        width: 120
+                                        height: 40
+                                        onClicked: {
+                                            userManager.adduser(usernameField.text, passwordField.text, parseInt(gradeField.text))
+                                            add_o.close()
+                                            create_user.close()  // Ferme aussi la première popup après ajout
+                                        }
+                                    }
+
+                                    Button {
+                                        text: "Non"
+                                        width: 120
+                                        height: 40
+                                        onClicked: add_o.close()  // Ferme seulement cette popup
+                                    }
+                                }
+                            }
+                        }
+
         }
                 Popup {
                         id: modif_mdp
@@ -128,7 +199,15 @@ Item {
                         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
                         parent: Overlay.overlay
                         z: 90
-
+                        Text {
+                            id: errorMessagem
+                            text: ""
+                            color: "yellow"
+                            font.pixelSize: 18
+                            font.bold: true
+                            anchors.centerIn: parent
+                            visible: false
+                        }
                         Column{
                             anchors.centerIn: parent
                             width: parent.width
@@ -149,12 +228,15 @@ Item {
                                 anchors.bottom: parent
                                 width: 200
                                 height: 40
-                                onClicked: if(alerteManager.verifUser(username_mmdp)){
-                                           modif_mdp_page.open()}
-                                           else{console.log("Veuillez remplir le champ.");
-                                               errorMessage.text = "Veuillez remplir le champ";
-                                               errorMessage.visible = true;
-                                               hideError.start();
+                                onClicked: if(username_mmdp.text ===""){
+                                                console.log("Veuillez remplir le champ.");
+                                                errorMessagem.text = "Veuillez remplir le champ";
+                                                errorMessagem.visible = true;
+                                                hideError.start();
+                                           }
+                                           else{
+                                               if(userManager.verifUser(username_mmdp.text)){
+                                                   modif_mdp_page.open()}
                                            }
             }
         }
@@ -197,9 +279,17 @@ Item {
                                 anchors.bottom: parent
                                 width: 200
                                 height: 40
-                                onClicked:{ modif_grade.open() ;
-                                    gradefield.clear();
-                                    username_mgrade.clear();}
+                                onClicked:{ if(username_mgrade.text ==="" || gradefield.text === "" ){
+                                        console.log("Veuillez remplir les champ.");
+                                        errorMessagem.text = "Veuillez remplir les champ";
+                                        errorMessagem.visible = true;
+                                        hideError.start();
+                                   }
+                                   else{
+                                        userManager.modifgrade(username_mgrade.text, parseInt(gradefield.text))
+                                        modif_grade.close();}
+
+                                }
                             }
                         }
                 }
@@ -245,8 +335,9 @@ Item {
                                             errorMessage.visible = true;
                                             hideError.start();
                                         }else{
-                                            alerteManager.modifpw(password.text, username_mmdp.text)
+                                            userManager.modifpw(username_mmdp.text, password.text)
                                             console.log("mot de passes modifié");
+                                            modif_mdp_page.close();
 
                                         }
                                 }
